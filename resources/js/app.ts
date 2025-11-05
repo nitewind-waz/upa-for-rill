@@ -1,45 +1,50 @@
 import '../css/app.css';
 
+import { createApp, h, DefineComponent } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { createApp, h } from 'vue';
-import type { DefineComponent } from 'vue';
-import { initializeTheme } from './composables/useAppearance';
 
+// PrimeVue Imports
 import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
-import Nora from '@primeuix/themes/nora';
-import 'primeicons/primeicons.css'; // buat icon
-import { MyTheme } from './theme-custom'
+import ConfirmationService from 'primevue/confirmationservice';
+import DialogService from 'primevue/dialogservice';
+import Tooltip from 'primevue/tooltip';
+import Ripple from 'primevue/ripple';
+
+// PrimeVue CSS
+import 'primeicons/primeicons.css';
+import { MyTheme } from './theme-custom';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-  title: (title) => (title ? `${title} - ${appName}` : appName),
-  resolve: (name) =>
-    resolvePageComponent(
-      `./pages/${name}.vue`,
-      import.meta.glob<DefineComponent>('./pages/**/*.vue'),
-    ),
-  setup({ el, App, props, plugin }) {
-    const vueApp = createApp({ render: () => h(App, props) });
+    title: (title) => `${title} - ${appName}`,
+    resolve: (name) =>
+        resolvePageComponent(
+            `./Pages/${name}.vue`,
+            import.meta.glob<DefineComponent>('./Pages/**/*.vue')
+        ),
+    setup({ el, App, props, plugin }) {
+        const app = createApp({ render: () => h(App, props) })
+            .use(plugin)
+            .use(PrimeVue, {
+                ripple: true,
+                theme: MyTheme,
+                inputStyle: 'outlined'
+            })
+            .use(ToastService)
+            .use(ConfirmationService)
+            .use(DialogService);
 
-    vueApp.use(plugin);
-    vueApp.use(PrimeVue, {
-      theme: {
-        preset: MyTheme,
-        options: {
-            darkModeSelector: '.my-app-dark',
-        }
-      },
-    });
-    vueApp.use(ToastService);
+        // Register directives
+        app.directive('tooltip', Tooltip);
+        app.directive('ripple', Ripple);
 
-    vueApp.mount(el);
-  },
-  progress: {
-    color: '#4B5563',
-  },
+        app.mount(el);
+    },
+    progress: {
+        color: '#F97316',
+        showSpinner: true,
+    },
 });
-
-initializeTheme();
