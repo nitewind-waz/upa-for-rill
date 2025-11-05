@@ -1,50 +1,52 @@
 import '../css/app.css';
 
-import { createApp, h, DefineComponent } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
+import { createApp, h } from 'vue';
+import type { DefineComponent } from 'vue';
+// import { initializeTheme } from './composables/useAppearance';
 
-// PrimeVue Imports
 import PrimeVue from 'primevue/config';
 import ToastService from 'primevue/toastservice';
-import ConfirmationService from 'primevue/confirmationservice';
-import DialogService from 'primevue/dialogservice';
-import Tooltip from 'primevue/tooltip';
-import Ripple from 'primevue/ripple';
-
-// PrimeVue CSS
+import Aura from '@primeuix/themes/aura';
+// import Nora from '@primevue/themes/nora'; // Gunakan ini jika ingin theme Nora
 import 'primeicons/primeicons.css';
-import { MyTheme } from './theme-custom';
+// import { MyTheme } from './theme-custom'; // Uncomment jika sudah buat custom theme
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
-    title: (title) => `${title} - ${appName}`,
-    resolve: (name) =>
-        resolvePageComponent(
-            `./Pages/${name}.vue`,
-            import.meta.glob<DefineComponent>('./Pages/**/*.vue')
-        ),
-    setup({ el, App, props, plugin }) {
-        const app = createApp({ render: () => h(App, props) })
-            .use(plugin)
-            .use(PrimeVue, {
-                ripple: true,
-                theme: MyTheme,
-                inputStyle: 'outlined'
-            })
-            .use(ToastService)
-            .use(ConfirmationService)
-            .use(DialogService);
+  title: (title) => (title ? `${title} - ${appName}` : appName),
+  resolve: (name) =>
+    resolvePageComponent(
+      `./Pages/${name}.vue`, // Huruf besar P untuk Pages (sesuai struktur Laravel)
+      import.meta.glob<DefineComponent>('./Pages/**/*.vue'),
+    ),
+  setup({ el, App, props, plugin }) {
+    const vueApp = createApp({ render: () => h(App, props) });
 
-        // Register directives
-        app.directive('tooltip', Tooltip);
-        app.directive('ripple', Ripple);
+    vueApp.use(plugin);
+    vueApp.use(PrimeVue, {
+      theme: {
+        preset: Aura, // Gunakan Aura (bukan MyTheme atau Nora yang error)
+        options: {
+          prefix: 'p',
+          darkModeSelector: '.my-app-dark',
+          cssLayer: false
+        }
+      },
+      ripple: true,
+      inputStyle: 'outlined'
+    });
+    vueApp.use(ToastService);
 
-        app.mount(el);
-    },
-    progress: {
-        color: '#F97316',
-        showSpinner: true,
-    },
+    vueApp.mount(el);
+  },
+  progress: {
+    color: '#F97316', // Orange untuk UPA Bahasa
+    showSpinner: true,
+  },
 });
+
+// Uncomment jika sudah ada composable initializeTheme
+// initializeTheme();
