@@ -14,4 +14,8 @@ Route::get('/dashboard', function () {
     return Inertia::render('Dashboard');
 })->name('dashboard');
 
+Route::get('/jadwal', function(){
+    return Inertia::render('mahasiswa/Jadwal');
+})->name('jadwal');
+
 require __DIR__.'/settings.php';
