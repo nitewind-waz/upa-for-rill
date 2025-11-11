@@ -13,8 +13,9 @@ return new class extends Migration
             $table->id();
             $table->string('nim', 20)->unique();
             $table->string('nama', 100);
+            $table->date('tanggal_lahir');
             $table->string('email')->nullable();
-            $table->string('password')->default(Hash::make('ept123'));
+            $table->string('password')->default(Hash::make('adilfhalsjk1231243221'));
             $table->foreignId('jurusan_id')->constrained('jurusans')->cascadeOnDelete();
             $table->foreignId('prodi_id')->constrained('prodis')->cascadeOnDelete();
             $table->foreignId('kelas_id')->constrained('kelas')->cascadeOnDelete();
