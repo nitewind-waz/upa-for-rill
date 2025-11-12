@@ -59,7 +59,7 @@ const menuItems = ref([
     label: 'Hasil EPT',
     icon: 'pi pi-file-check',
     route: '/hasil-ept',
-    command: () => navigateTo('/hasil-ept')
+    command: () => navigateTo('/hasil')
   }
 ]);
 
@@ -146,48 +146,7 @@ const navigateTo = (path) => {
     </Sidebar>
 
     <!-- Hero Section (Optional) -->
-    <section 
-      v-if="showHero" 
-      class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 py-24 relative overflow-hidden"
-    >
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-10 right-20 w-64 h-64 border-4 border-white rounded-full"></div>
-        <div class="absolute bottom-10 left-20 w-48 h-48 border-4 border-white rounded-full"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 border-4 border-white rounded-full"></div>
-      </div>
-
-      <div class="container mx-auto px-4 relative z-10">
-        <div class="text-center max-w-4xl mx-auto">
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 animate-fade-in">
-            {{ heroTitle }}
-          </h1>
-          <p class="text-xl text-gray-100 mb-10">
-            {{ heroSubtitle }}
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              label="Lihat Kursus" 
-              icon="pi pi-book"
-              @click="navigateTo('/kursus')"
-              severity="primary"
-              size="large"
-              raised
-              class="px-6"
-            />
-            <Button 
-              label="Cek Hasil EPT" 
-              icon="pi pi-file-check"
-              @click="navigateTo('/hasil-ept')"
-              severity="secondary"
-              size="large"
-              outlined
-              class="px-6"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
+ 
 
     <!-- Main Content -->
     <main class="flex-grow">
