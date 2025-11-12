@@ -1,273 +1,312 @@
-<script setup>
-import { ref } from 'vue';
-import { Link } from '@inertiajs/vue3';
-import Menubar from 'primevue/menubar';
-import Button from 'primevue/button';
-import Sidebar from 'primevue/sidebar';
-
-const props = defineProps({
-  title: String,
-  showHero: {
-    type: Boolean,
-    default: false
-  },
-  heroTitle: {
-    type: String,
-    default: 'Tingkatkan Kemampuan Bahasa Anda'
-  },
-  heroSubtitle: {
-    type: String,
-    default: 'Bergabunglah dengan program kursus bahasa berkualitas di UPA Bahasa POLBAN'
-  }
-});
-
-const visibleSidebar = ref(false);
-const currentRoute = ref(window.location.pathname);
-
-const menuItems = ref([
-  {
-    label: 'Home',
-    icon: 'pi pi-home',
-    route: '/',
-    command: () => navigateTo('/')
-  },
-  {
-    label: 'Kursus',
-    icon: 'pi pi-book',
-    route: '/kursus',
-    command: () => navigateTo('/kursus')
-  },
-  {
-    label: 'Jadwal',
-    icon: 'pi pi-calendar',
-    route: '/jadwal',
-    command: () => navigateTo('/jadwal')
-  },
-  {
-    label: 'Pembelajaran',
-    icon: 'pi pi-graduation-cap',
-    route: '/pembelajaran',
-    command: () => navigateTo('/pembelajaran')
-  },
-  {
-    label: 'Berita',
-    icon: 'pi pi-newspaper',
-    route: '/berita',
-    command: () => navigateTo('/berita')
-  },
-  {
-    label: 'Hasil EPT',
-    icon: 'pi pi-file-check',
-    route: '/hasil-ept',
-    command: () => navigateTo('/hasil-ept')
-  }
-]);
-
-const navigateTo = (path) => {
-  currentRoute.value = path;
-};
-</script>
-
 <template>
-  <div class="min-h-screen flex flex-col">
-    <!-- Desktop Navbar -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50 hidden md:block">
-      <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between h-20">
-          <!-- Logo -->
-          <Link href="/" class="flex flex-col">
-            <span class="text-2xl font-bold text-blue-900">UPA Bahasa</span>
-            <span class="text-sm text-orange-500 font-semibold">POLBAN</span>
-          </Link>
+  <div class="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-blue-50">
+    <!-- Header dengan Glassmorphism Effect -->
+    <header class="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-blue-100 shadow-sm">
+      <nav class="container mx-auto px-6 py-4">
+        <div class="flex justify-between items-center">
+          <!-- Logo & Brand -->
+          <div class="flex items-center gap-3 group cursor-pointer">
+            <div class="relative">
+              <Avatar 
+                icon="pi pi-comments" 
+                size="large" 
+                shape="circle"
+                class="bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105" 
+              />
+              <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
+            </div>
+            <div>
+              <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
+                UPA Bahasa
+              </span>
+              <p class="text-xs text-blue-600 font-medium">Politeknik Negeri Bandung</p>
+            </div>
+          </div>
 
           <!-- Navigation Menu -->
-          <div class="flex items-center space-x-1">
-            <Link 
-              v-for="item in menuItems" 
-              :key="item.route"
-              :href="item.route" 
-              class="px-4 py-2 text-gray-700 hover:text-blue-900 font-medium rounded-lg hover:bg-blue-50 transition-all"
-              :class="{ 'bg-orange-500 text-white hover:bg-orange-600 hover:text-white': currentRoute === item.route }"
+          <div class="hidden md:flex items-center gap-2">
+            <a
+              v-for="item in navItems"
+              :key="item.label"
+              :href="item.url"
+              class="px-5 py-2.5 rounded-xl font-medium transition-all duration-300 relative overflow-hidden group"
+              :class="item.active
+                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-200'
+                : 'text-gray-700 hover:bg-blue-50'"
             >
-              <i :class="item.icon + ' mr-2'"></i>
-              {{ item.label }}
-            </Link>
+              <span class="relative z-10">{{ item.label }}</span>
+              <div 
+                v-if="!item.active"
+                class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+              ></div>
+              <span 
+                v-if="!item.active"
+                class="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
+              >
+                {{ item.label }}
+              </span>
+            </a>
           </div>
-        </div>
-      </div>
-    </nav>
 
-    <!-- Mobile Navbar -->
-    <nav class="bg-white shadow-sm sticky top-0 z-50 md:hidden">
-      <div class="container mx-auto px-4">
-        <div class="flex items-center justify-between h-16">
-          <Link href="/" class="flex flex-col">
-            <span class="text-xl font-bold text-blue-900">UPA Bahasa</span>
-            <span class="text-xs text-orange-500 font-semibold">POLBAN</span>
-          </Link>
-          
+          <!-- Mobile Menu Button -->
           <Button 
             icon="pi pi-bars" 
-            @click="visibleSidebar = true"
-            text
-            severity="secondary"
-            size="large"
+            class="md:hidden" 
+            text 
+            rounded 
+            @click="mobileMenuVisible = true"
           />
         </div>
-      </div>
-    </nav>
-
-    <!-- Mobile Sidebar -->
-    <Sidebar 
-      v-model:visible="visibleSidebar" 
-      position="right"
-      class="w-80"
-    >
-      <template #header>
-        <div class="flex flex-col">
-          <span class="text-2xl font-bold text-blue-900">UPA Bahasa</span>
-          <span class="text-sm text-orange-500 font-semibold">POLBAN</span>
-        </div>
-      </template>
-      
-      <div class="flex flex-col gap-2">
-        <Link 
-          v-for="item in menuItems" 
-          :key="item.route"
-          :href="item.route" 
-          class="p-3 text-gray-700 hover:text-blue-900 font-medium rounded-lg hover:bg-blue-50 transition-all flex items-center"
-          :class="{ 'bg-orange-500 text-white hover:bg-orange-600 hover:text-white': currentRoute === item.route }"
-          @click="visibleSidebar = false"
-        >
-          <i :class="item.icon + ' mr-3 text-lg'"></i>
-          {{ item.label }}
-        </Link>
-      </div>
-    </Sidebar>
-
-    <!-- Hero Section (Optional) -->
-    <section 
-      v-if="showHero" 
-      class="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-700 py-24 relative overflow-hidden"
-    >
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-10 right-20 w-64 h-64 border-4 border-white rounded-full"></div>
-        <div class="absolute bottom-10 left-20 w-48 h-48 border-4 border-white rounded-full"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 border-4 border-white rounded-full"></div>
-      </div>
-
-      <div class="container mx-auto px-4 relative z-10">
-        <div class="text-center max-w-4xl mx-auto">
-          <h1 class="text-4xl md:text-5xl font-bold text-white mb-6 animate-fade-in">
-            {{ heroTitle }}
-          </h1>
-          <p class="text-xl text-gray-100 mb-10">
-            {{ heroSubtitle }}
-          </p>
-          <div class="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button 
-              label="Lihat Kursus" 
-              icon="pi pi-book"
-              @click="navigateTo('/kursus')"
-              severity="primary"
-              size="large"
-              raised
-              class="px-6"
-            />
-            <Button 
-              label="Cek Hasil EPT" 
-              icon="pi pi-file-check"
-              @click="navigateTo('/hasil-ept')"
-              severity="secondary"
-              size="large"
-              outlined
-              class="px-6"
-            />
-          </div>
-        </div>
-      </div>
-    </section>
+      </nav>
+    </header>
 
     <!-- Main Content -->
-    <main class="flex-grow">
+    <main class="flex-1 container mx-auto px-6 py-8">
       <slot />
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-blue-900 text-white py-12">
-      <div class="container mx-auto px-4">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <!-- Company Info -->
-          <div>
-            <h3 class="text-2xl font-bold text-orange-500 mb-4">UPA Bahasa POLBAN</h3>
-            <p class="text-gray-300 leading-relaxed">
-              Unit Pelaksana Akademik Bahasa yang berkomitmen meningkatkan kemampuan berbahasa mahasiswa.
+    <!-- Floating Action Button dengan Tooltip -->
+    <div class="fixed bottom-8 right-8 z-40">
+      <div class="relative group">
+        <Button
+          icon="pi pi-comments"
+          rounded
+          size="large"
+          severity="info"
+          class="shadow-2xl shadow-blue-300 hover:shadow-3xl hover:scale-110 transition-all duration-300 bg-gradient-to-br from-blue-600 to-blue-800 border-none w-16 h-16"
+          @mouseenter="contactVisible = true"
+          @mouseleave="contactVisible = false"
+        />
+        
+        <!-- Contact Card -->
+        <Transition
+          enter-active-class="transition ease-out duration-200"
+          enter-from-class="opacity-0 translate-y-4"
+          enter-to-class="opacity-100 translate-y-0"
+          leave-active-class="transition ease-in duration-150"
+          leave-from-class="opacity-100 translate-y-0"
+          leave-to-class="opacity-0 translate-y-4"
+        >
+          <Card 
+            v-if="contactVisible"
+            class="absolute bottom-20 right-0 w-80 shadow-2xl"
+            @mouseenter="contactVisible = true"
+            @mouseleave="contactVisible = false"
+          >
+            <template #header>
+              <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4 text-white">
+                <h3 class="text-lg font-bold flex items-center gap-2">
+                  <i class="pi pi-phone"></i>
+                  Hubungi Kami
+                </h3>
+                <p class="text-sm text-blue-100 mt-1">Kami siap membantu Anda</p>
+              </div>
+            </template>
+            <template #content>
+              <div class="space-y-4">
+                <a 
+                  href="mailto:upa.bahasa@polban.ac.id"
+                  class="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 transition-colors group"
+                >
+                  <div class="bg-blue-100 p-2 rounded-lg group-hover:bg-blue-200 transition-colors">
+                    <i class="pi pi-envelope text-blue-700 text-lg"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-500 font-medium">Email</p>
+                    <p class="text-sm text-gray-800 font-semibold">upa.bahasa@polban.ac.id</p>
+                  </div>
+                </a>
+
+                <a 
+                  href="https://wa.me/6281234567890"
+                  target="_blank"
+                  class="flex items-center gap-3 p-3 rounded-lg hover:bg-green-50 transition-colors group"
+                >
+                  <div class="bg-green-100 p-2 rounded-lg group-hover:bg-green-200 transition-colors">
+                    <i class="pi pi-whatsapp text-green-600 text-lg"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-500 font-medium">WhatsApp</p>
+                    <p class="text-sm text-gray-800 font-semibold">+62 812 3456 7890</p>
+                  </div>
+                </a>
+
+                <a 
+                  href="https://instagram.com/upabahasa_polban"
+                  target="_blank"
+                  class="flex items-center gap-3 p-3 rounded-lg hover:bg-pink-50 transition-colors group"
+                >
+                  <div class="bg-pink-100 p-2 rounded-lg group-hover:bg-pink-200 transition-colors">
+                    <i class="pi pi-instagram text-pink-600 text-lg"></i>
+                  </div>
+                  <div class="flex-1">
+                    <p class="text-xs text-gray-500 font-medium">Instagram</p>
+                    <p class="text-sm text-gray-800 font-semibold">@upabahasa_polban</p>
+                  </div>
+                </a>
+              </div>
+            </template>
+          </Card>
+        </Transition>
+      </div>
+    </div>
+
+    <!-- Modern Footer -->
+    <footer class="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-12 mt-16 relative overflow-hidden">
+      <!-- Background Pattern -->
+      <div class="absolute inset-0 opacity-10">
+        <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+        <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl"></div>
+      </div>
+
+      <div class="container mx-auto px-6 relative z-10">
+        <div class="grid md:grid-cols-3 gap-8">
+          <!-- About Section -->
+          <div class="space-y-4">
+            <div class="flex items-center gap-3">
+              <Avatar 
+                icon="pi pi-comments" 
+                size="large" 
+                shape="circle"
+                class="bg-white text-blue-800 shadow-lg" 
+              />
+              <div>
+                <h3 class="text-xl font-bold">UPA Bahasa</h3>
+                <p class="text-blue-200 text-sm">POLBAN</p>
+              </div>
+            </div>
+            <p class="text-blue-100 text-sm leading-relaxed">
+              Unit Pelaksana Administrasi Bahasa Politeknik Negeri Bandung, 
+              mendukung pengembangan kemampuan bahasa mahasiswa.
             </p>
           </div>
 
-          <!-- Menu -->
-          <div>
-            <h4 class="text-lg font-semibold mb-4">Menu</h4>
-            <ul class="space-y-2">
-              <li v-for="item in menuItems" :key="item.route">
-                <Link 
-                  :href="item.route" 
-                  class="text-gray-300 hover:text-orange-500 transition-colors flex items-center"
-                >
-                  <i :class="item.icon + ' mr-2'"></i>
-                  {{ item.label }}
-                </Link>
-              </li>
-            </ul>
+          <!-- Quick Links -->
+          <div class="space-y-4">
+            <h4 class="text-lg font-bold">Quick Links</h4>
+            <div class="grid grid-cols-2 gap-2">
+              <a 
+                v-for="item in navItems" 
+                :key="item.label"
+                :href="item.url"
+                class="text-blue-100 hover:text-white transition-colors text-sm hover:translate-x-1 transform duration-200 flex items-center gap-2"
+              >
+                <i class="pi pi-angle-right text-xs"></i>
+                {{ item.label }}
+              </a>
+            </div>
           </div>
 
-          <!-- Contact -->
-          <div>
-            <h4 class="text-lg font-semibold mb-4">Kontak</h4>
-            <ul class="space-y-3">
-              <li class="flex items-start">
-                <i class="pi pi-map-marker mt-1 mr-3 text-orange-500"></i>
-                <span class="text-gray-300">
-                  Jl. Gegerkalong Hilir, Ciwaruga, Bandung
-                </span>
-              </li>
-              <li class="flex items-center">
-                <i class="pi pi-phone mr-3 text-orange-500"></i>
-                <span class="text-gray-300">+62 821 1234 5678</span>
-              </li>
-              <li class="flex items-center">
-                <i class="pi pi-envelope mr-3 text-orange-500"></i>
-                <span class="text-gray-300">upabahasa@polban.ac.id</span>
-              </li>
-            </ul>
+          <!-- Contact Info -->
+          <div class="space-y-4">
+            <h4 class="text-lg font-bold">Kontak & Lokasi</h4>
+            <div class="space-y-3 text-sm">
+              <div class="flex items-start gap-3">
+                <i class="pi pi-map-marker text-blue-300 mt-1"></i>
+                <p class="text-blue-100">
+                  Jl. Gegerkalong Hilir, Ciwaruga<br/>
+                  Bandung, Jawa Barat
+                </p>
+              </div>
+              <div class="flex items-center gap-3">
+                <i class="pi pi-envelope text-blue-300"></i>
+                <a href="mailto:upa.bahasa@polban.ac.id" class="text-blue-100 hover:text-white transition-colors">
+                  upa.bahasa@polban.ac.id
+                </a>
+              </div>
+              <div class="flex items-center gap-3">
+                <i class="pi pi-instagram text-blue-300"></i>
+                <a href="https://instagram.com/upabahasa_polban" target="_blank" class="text-blue-100 hover:text-white transition-colors">
+                  @upabahasa_polban
+                </a>
+              </div>
+            </div>
           </div>
         </div>
 
         <!-- Copyright -->
-        <div class="border-t border-blue-800 mt-8 pt-6 text-center">
-          <p class="text-gray-400">
-            © {{ new Date().getFullYear() }} UPA Bahasa POLBAN. All rights reserved.
-          </p>
+        <Divider class="my-6 border-blue-700" />
+        <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-blue-200">
+          <p>© 2025 UPA Bahasa Politeknik Negeri Bandung. All rights reserved.</p>
+          <div class="flex gap-4">
+            <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
+            <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
+          </div>
         </div>
       </div>
     </footer>
+
+    <!-- Mobile Menu Sidebar -->
+    <Sidebar v-model:visible="mobileMenuVisible" position="right">
+      <template #header>
+        <div class="flex items-center gap-3">
+          <Avatar 
+            icon="pi pi-comments" 
+            size="large" 
+            class="bg-gradient-to-br from-blue-600 to-blue-800 text-white" 
+          />
+          <div>
+            <h3 class="font-bold text-blue-900">UPA Bahasa</h3>
+            <p class="text-xs text-blue-600">POLBAN</p>
+          </div>
+        </div>
+      </template>
+
+      <div class="space-y-2">
+        <a
+          v-for="item in navItems"
+          :key="item.label"
+          :href="item.url"
+          class="block px-4 py-3 rounded-lg font-medium transition-all"
+          :class="item.active
+            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
+            : 'text-gray-700 hover:bg-blue-50'"
+          @click="mobileMenuVisible = false"
+        >
+          {{ item.label }}
+        </a>
+      </div>
+    </Sidebar>
   </div>
 </template>
 
+<script setup>
+import { ref } from 'vue'
+import Avatar from 'primevue/avatar'
+import Button from 'primevue/button'
+import Card from 'primevue/card'
+import Divider from 'primevue/divider'
+import Sidebar from 'primevue/sidebar'
+
+const navItems = ref([
+  { label: 'Home', url: '/', active: false },
+  { label: 'Kursus', url: '/kursus', active: true },
+  { label: 'Pembelajaran', url: '/pembelajaran', active: false },
+  { label: 'Jadwal EPT', url: '/jadwal', active: false },
+  { label: 'Hasil EPT', url: '/hasil', active: false },
+])
+
+const contactVisible = ref(false)
+const mobileMenuVisible = ref(false)
+</script>
+
 <style scoped>
-@keyframes fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* Custom scrollbar untuk sidebar */
+:deep(.p-sidebar-content) {
+  scrollbar-width: thin;
+  scrollbar-color: #3b82f6 #e5e7eb;
 }
 
-.animate-fade-in {
-  animation: fade-in 0.8s ease-out;
+:deep(.p-sidebar-content::-webkit-scrollbar) {
+  width: 6px;
+}
+
+:deep(.p-sidebar-content::-webkit-scrollbar-track) {
+  background: #e5e7eb;
+}
+
+:deep(.p-sidebar-content::-webkit-scrollbar-thumb) {
+  background: #3b82f6;
+  border-radius: 3px;
 }
 </style>
