@@ -15,6 +15,8 @@ class DatabaseSeeder extends Seeder
             JurusanSeeder::class,
             ProdiSeeder::class,
             KelasSeeder::class,
+            MahasiswaSeeder::class,
+            EptResultMahasiswaSeeder::class,
         ]);
     }
 }

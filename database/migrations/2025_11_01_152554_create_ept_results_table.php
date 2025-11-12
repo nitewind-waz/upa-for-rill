@@ -8,7 +8,7 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('ept_results', function (Blueprint $table) {
+        Schema::create('ept_results_mahasiswa', function (Blueprint $table) {
             $table->id();
             $table->foreignId('mahasiswa_id')->constrained('mahasiswas')->cascadeOnDelete();
             $table->year('tahun');
