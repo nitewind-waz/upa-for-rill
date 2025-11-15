@@ -14,6 +14,9 @@ class JurusanSeeder extends Seeder
             ['nama_jurusan' => 'Teknik Informatika'],
             ['nama_jurusan' => 'Teknik Elektro'],
             ['nama_jurusan' => 'Teknik Mesin'],
+            ['nama_jurusan' => 'Akuntansi'],
+            ['nama_jurusan' => 'Administrasi Niaga'],
+            ['nama_jurusan' => 'Teknik Sipil'],
         ]);
     }
 }

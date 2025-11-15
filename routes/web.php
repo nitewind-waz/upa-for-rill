@@ -26,9 +26,8 @@ Route::get('/jadwal', function(){
 
 Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasil');
 Route::post('/hasil/check', [EptResultMahasiswaController::class, 'checkResult'])->name('hasil.check');
-Route::get('/hasil/jurusan', [JurusanController::class, 'index'])->name('hasil.jurusan');
-Route::get('/hasil/prodi', [ProdiController::class, 'index'])->name('hasil.prodi');
-Route::get('/hasil/kelas', [KelasController::class, 'index'])->name('hasil.kelas');
+Route::post('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->name('hasil.stats');
+
 
 
 require __DIR__.'/settings.php';
