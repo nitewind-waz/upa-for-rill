@@ -11,7 +11,7 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jadwals', function (Blueprint $table) {
+        Schema::create('jadwal_test_mahasiswas', function (Blueprint $table) {
             $table->id(); // Primary Key (Surrogate Key)
 
             // Atribut-atribut dari 'Jadwal UPT'

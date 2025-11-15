@@ -15,11 +15,11 @@ return new class extends Migration
             $table->id();
             $table->foreignId('prodi_id')->nullable()->constrained('prodis')->nullOnDelete();
             $table->foreignId('kelas_id')->nullable()->constrained('kelas')->nullOnDelete();
-            $table->string('tempat')->nullable();            
-            $table->string('gedung')->nullable();            
-            $table->date('tanggal');                        
-            $table->time('waktu_mulai')->nullable();         
-            $table->time('waktu_selesai')->nullable();      
+            $table->string('tempat')->nullable();
+            $table->string('gedung')->nullable();
+            $table->date('tanggal');
+            $table->time('waktu_mulai')->nullable();
+            $table->time('waktu_selesai')->nullable();
             $table->timestamps();
         });
 
