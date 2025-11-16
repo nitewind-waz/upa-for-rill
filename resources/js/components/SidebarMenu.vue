@@ -59,6 +59,7 @@ const isActive = (path: string): boolean => page.url.startsWith(path);
 const menuItems: MenuItem[] = [
   { label: 'Home', icon: 'pi pi-home', route: '/home' },
   { label: 'Mahasiswa', icon: 'pi pi-users', route: '/mahasiswa' },
+  { label: 'Kelola Berita', icon: 'pi pi-globe', route: '/admin/berita' },
   { label: 'Jadwal', icon: 'pi pi-calendar', route: '/jadwal' },
   { label: 'Nilai EPT', icon: 'pi pi-chart-bar', route: '/nilai-ept' },
   { label: 'Kursus', icon: 'pi pi-book', route: '/kursus' },
