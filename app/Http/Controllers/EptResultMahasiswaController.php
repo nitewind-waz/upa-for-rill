@@ -44,12 +44,12 @@ class EptResultMahasiswaController extends Controller
 
         // Validasi NIM
         if (!$mahasiswa){
-            return response()->json(['message' => 'NIM tidak ditemukan!'], 404);
+            return back()->withErrors(['individu' => 'NIM tidak ditemukan!'])->withInput();
         }
 
         // Validasi Password
         if (! Hash::check($validated['password'], $mahasiswa->password)) {
-            return response()->json(['message' => 'Password salah!'], 401);
+            return back()->withErrors(['individu' => 'Password salah!'])->withInput();
         }
 
         // Ambil hasil EPT mahasiswa
@@ -57,13 +57,17 @@ class EptResultMahasiswaController extends Controller
             ->orderByDesc('tahun')
             ->get(['tahun', 'listening', 'structure', 'reading', 'total_score', 'sertifikat_pdf']);
 
-        return response()->json([
-            'message' => 'Login berhasil',
+        return Inertia::render('mahasiswa/Hasil', [
+            'jurusan' => Jurusan::all(),
+            'prodi' => Prodi::all(),
+            'kelas' => Kelas::all(),
+            'activeTab' => 'Individu',
+            'eptResults' => $results,
             'mahasiswa' => [
                 'nim' => $mahasiswa->nim,
                 'nama' => $mahasiswa->nama,
             ],
-            'results' => $results,
+            'input' => $request->only(['nim']),
         ]);
     }
 
@@ -74,78 +78,80 @@ class EptResultMahasiswaController extends Controller
     {
         $validated = $request->validate([
             'level' => 'required|in:jurusan,prodi,kelas',
-            'ids'   => 'required|array|min:1',
+            'ids'   => 'sometimes|array',
             'ids.*' => 'integer',
         ]);
 
         $level = $validated['level'];
-        $ids = $validated['ids'];
+        $ids = $validated['ids'] ?? [];
         
         $datasets = [];
         $detailed_statistics = [];
         $backgroundColors = ['#42A5F5', '#FFA726', '#66BB6A', '#EF5350', '#AB47BC', '#26A69A'];
         $colorIndex = 0;
 
-        foreach ($ids as $id) {
-            $mahasiswaIds = collect();
-            $name = '';
+        if (!empty($ids)) {
+            foreach ($ids as $id) {
+                $mahasiswaIds = collect();
+                $name = '';
 
-            if ($level === 'jurusan') {
-                $model = Jurusan::find($id);
-                if(!$model) continue;
-                $name = $model->nama_jurusan;
-                $mahasiswaIds = Mahasiswa::where('jurusan_id', $id)->pluck('id');
-            } elseif ($level === 'prodi') {
-                $model = Prodi::find($id);
-                if(!$model) continue;
-                $name = $model->nama_prodi;
-                $mahasiswaIds = Mahasiswa::where('prodi_id', $id)->pluck('id');
-            } elseif ($level === 'kelas') {
-                $model = Kelas::find($id);
-                if(!$model) continue;
-                $name = $model->nama_kelas;
-                $mahasiswaIds = Mahasiswa::where('kelas_id', $id)->pluck('id');
+                if ($level === 'jurusan') {
+                    $model = Jurusan::find($id);
+                    if(!$model) continue;
+                    $name = $model->nama_jurusan;
+                    $mahasiswaIds = Mahasiswa::where('jurusan_id', $id)->pluck('id');
+                } elseif ($level === 'prodi') {
+                    $model = Prodi::find($id);
+                    if(!$model) continue;
+                    $name = $model->nama_prodi;
+                    $mahasiswaIds = Mahasiswa::where('prodi_id', $id)->pluck('id');
+                } elseif ($level === 'kelas') {
+                    $model = Kelas::find($id);
+                    if(!$model) continue;
+                    $name = $model->nama_kelas;
+                    $mahasiswaIds = Mahasiswa::where('kelas_id', $id)->pluck('id');
+                }
+
+                if ($mahasiswaIds->isEmpty()) continue;
+
+                $stats = EptResultMahasiswa::whereIn('mahasiswa_id', $mahasiswaIds)
+                    ->select(
+                        DB::raw('MAX(listening) as max_listening'),
+                        DB::raw('MIN(listening) as min_listening'),
+                        DB::raw('AVG(listening) as avg_listening'),
+                        DB::raw('MAX(structure) as max_structure'),
+                        DB::raw('MIN(structure) as min_structure'),
+                        DB::raw('AVG(structure) as avg_structure'),
+                        DB::raw('MAX(reading) as max_reading'),
+                        DB::raw('MIN(reading) as min_reading'),
+                        DB::raw('AVG(reading) as avg_reading'),
+                        DB::raw('MAX(total_score) as max_total_score'),
+                        DB::raw('MIN(total_score) as min_total_score'),
+                        DB::raw('AVG(total_score) as avg_total_score')
+                    )
+                    ->first();
+                
+                if(!$stats->max_listening) continue;
+
+                $datasets[] = [
+                    'label' => $name,
+                    'backgroundColor' => $backgroundColors[$colorIndex % count($backgroundColors)],
+                    'data' => [
+                        $stats->max_total_score,
+                        $stats->min_total_score,
+                        round($stats->avg_total_score, 2)
+                    ]
+                ];
+
+                $detailed_statistics[] = [
+                    'name' => $name,
+                    'listening' => ['max' => $stats->max_listening, 'min' => $stats->min_listening, 'avg' => round($stats->avg_listening, 2)],
+                    'structure' => ['max' => $stats->max_structure, 'min' => $stats->min_structure, 'avg' => round($stats->avg_structure, 2)],
+                    'reading' => ['max' => $stats->max_reading, 'min' => $stats->min_reading, 'avg' => round($stats->avg_reading, 2)],
+                ];
+                
+                $colorIndex++;
             }
-
-            if ($mahasiswaIds->isEmpty()) continue;
-
-            $stats = EptResultMahasiswa::whereIn('mahasiswa_id', $mahasiswaIds)
-                ->select(
-                    DB::raw('MAX(listening) as max_listening'),
-                    DB::raw('MIN(listening) as min_listening'),
-                    DB::raw('AVG(listening) as avg_listening'),
-                    DB::raw('MAX(structure) as max_structure'),
-                    DB::raw('MIN(structure) as min_structure'),
-                    DB::raw('AVG(structure) as avg_structure'),
-                    DB::raw('MAX(reading) as max_reading'),
-                    DB::raw('MIN(reading) as min_reading'),
-                    DB::raw('AVG(reading) as avg_reading'),
-                    DB::raw('MAX(total_score) as max_total_score'),
-                    DB::raw('MIN(total_score) as min_total_score'),
-                    DB::raw('AVG(total_score) as avg_total_score')
-                )
-                ->first();
-            
-            if(!$stats->max_listening) continue;
-
-            $datasets[] = [
-                'label' => $name,
-                'backgroundColor' => $backgroundColors[$colorIndex % count($backgroundColors)],
-                'data' => [
-                    $stats->max_total_score,
-                    $stats->min_total_score,
-                    round($stats->avg_total_score, 2)
-                ]
-            ];
-
-            $detailed_statistics[] = [
-                'name' => $name,
-                'listening' => ['max' => $stats->max_listening, 'min' => $stats->min_listening, 'avg' => round($stats->avg_listening, 2)],
-                'structure' => ['max' => $stats->max_structure, 'min' => $stats->min_structure, 'avg' => round($stats->avg_structure, 2)],
-                'reading' => ['max' => $stats->max_reading, 'min' => $stats->min_reading, 'avg' => round($stats->avg_reading, 2)],
-            ];
-            
-            $colorIndex++;
         }
 
         $responseData = [
@@ -156,6 +162,13 @@ class EptResultMahasiswaController extends Controller
             'detailed_statistics' => $detailed_statistics
         ];
 
-        return response()->json($responseData);
+        return Inertia::render('mahasiswa/Hasil', [
+            'jurusan' => Jurusan::all(),
+            'prodi' => Prodi::all(),
+            'kelas' => Kelas::all(),
+            'activeTab' => ucfirst($level),
+            'stats' => $responseData,
+            'input' => $request->only(['level', 'ids']),
+        ]);
     }
 }

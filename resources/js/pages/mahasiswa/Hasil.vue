@@ -1,103 +1,72 @@
 <script setup>
 import { ref, watch } from 'vue'
+import { router, useForm } from '@inertiajs/vue3'
 import Layout from '@/layouts/AppLayout.vue'
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
 import MultiSelect from 'primevue/multiselect'
-import axios from 'axios'
-import ProgressSpinner from 'primevue/progressspinner';
+import ProgressSpinner from 'primevue/progressspinner'
+import { debounce } from 'lodash';
 
 // Props dari Laravel
 const props = defineProps({
   jurusan: { type: Array, default: () => [] },
   prodi: { type: Array, default: () => [] },
   kelas: { type: Array, default: () => [] },
-  activeTab: { type: String, default: 'Individu' }
+  activeTab: { type: String, default: 'Individu' },
+  eptResults: { type: Array, default: null },
+  mahasiswa: { type: Object, default: null },
+  stats: { type: Object, default: null },
+  errors: { type: Object, default: () => ({}) },
+  input: { type: Object, default: () => ({}) }
 })
 
 const activeTab = ref(props.activeTab)
-const isStatsLoading = ref(false) // Renamed
-const statsErrorMessage = ref('') // Renamed
 
-// === State dropdown ===
-const selectedJurusan = ref([])
-const selectedProdi = ref([])
-const selectedKelas = ref([])
+// === State untuk tab Individu (menggunakan useForm) ===
+const form = useForm({
+  nim: props.input?.nim || '',
+  password: ''
+})
 
-// === State untuk tab Individu ===
-const nim = ref('')
-const passwrd = ref('')
-const eptResults = ref(null)
-const isIndividuLoading = ref(false) // New
-const individuErrorMessage = ref('') // New
-const chartData = ref(null)
+// === State dropdown untuk Statistik ===
+const selectedJurusan = ref(props.input?.level === 'jurusan' ? props.input.ids : [])
+const selectedProdi = ref(props.input?.level === 'prodi' ? props.input.ids : [])
+const selectedKelas = ref(props.input?.level === 'kelas' ? props.input.ids : [])
 
-// === Ambil data statistik untuk grafik ===
-const getStats = async (level) => {
-  chartData.value = null
-  statsErrorMessage.value = '' // Use statsErrorMessage
-  let ids = []
-  if (level === 'jurusan') ids = selectedJurusan.value
-  else if (level === 'prodi') ids = selectedProdi.value
-  else if (level === 'kelas') ids = selectedKelas.value
-
-  if (ids.length === 0) {
-    return
-  }
-  
-  isStatsLoading.value = true // Use isStatsLoading
-  try {
-    const response = await axios.post('/hasil/stats', { level, ids })
-    chartData.value = response.data
-  } catch (error) {
-    statsErrorMessage.value = error.response?.data?.message || 'Terjadi kesalahan saat mengambil data statistik.' // Use statsErrorMessage
-  } finally {
-    isStatsLoading.value = false // Use isStatsLoading
-  }
+// === Fungsi untuk cek hasil EPT individu ===
+const handleCheckResult = () => {
+  form.post('/hasil/check', {
+    preserveState: (page) => Object.keys(page.props.errors).length > 0,
+    preserveScroll: true,
+  })
 }
 
-// Watchers untuk auto-update
-watch(selectedJurusan, () => getStats('jurusan'))
-watch(selectedProdi, () => getStats('prodi'))
-watch(selectedKelas, () => getStats('kelas'))
+// === Ambil data statistik untuk grafik (menggunakan router.get) ===
+const getStats = debounce((level, ids) => {
+  if (ids.length === 0) {
+    // Jika pilihan dikosongkan, kembali ke halaman dasar tanpa data statistik
+    router.get('/hasil', { tab: level.charAt(0).toUpperCase() + level.slice(1) }, { preserveState: true, preserveScroll: true, replace: true });
+    return;
+  }
+  
+  router.get('/hasil/stats', { level, ids }, {
+    preserveState: true,
+    preserveScroll: true,
+    replace: true // Ganti state history agar tidak menumpuk saat memilih
+  })
+}, 300); // Debounce 300ms
 
+// Watchers untuk auto-update
+watch(selectedJurusan, (newVal) => getStats('jurusan', newVal))
+watch(selectedProdi, (newVal) => getStats('prodi', newVal))
+watch(selectedKelas, (newVal) => getStats('kelas', newVal))
 
 // === Navigasi antar tab ===
 const loadTabData = (tab) => {
   activeTab.value = tab
-  // Reset state saat pindah tab
-  chartData.value = null
-  statsErrorMessage.value = '' // Reset statsErrorMessage
-  isStatsLoading.value = false // Reset statsLoading
-  individuErrorMessage.value = '' // Reset individuErrorMessage
-  isIndividuLoading.value = false // Reset individuLoading
-  selectedJurusan.value = []
-  selectedProdi.value = []
-  selectedKelas.value = []
-}
-
-// === Fungsi untuk cek hasil EPT individu ===
-const handleCheckResult = async () => {
-  individuErrorMessage.value = '' // Use individuErrorMessage
-  eptResults.value = null
-
-  if (!nim.value || !passwrd.value) {
-    individuErrorMessage.value = 'Silakan masukkan NIM dan Password.' // Use individuErrorMessage
-    return
-  }
-  
-  isIndividuLoading.value = true // Use isIndividuLoading
-  try {
-    const response = await axios.post('/hasil/check', {
-      nim: nim.value,
-      password: passwrd.value
-    })
-    eptResults.value = response.data.results
-  } catch (error) {
-    individuErrorMessage.value = error.response?.data?.message || 'Terjadi kesalahan. Silakan coba lagi.' // Use individuErrorMessage
-  } finally {
-    isIndividuLoading.value = false // Use isIndividuLoading
-  }
+  // Cukup ganti URL untuk mencerminkan tab aktif tanpa reload
+  router.visit(`/hasil?tab=${tab}`, { preserveState: true, preserveScroll: true, replace: true })
 }
 </script>
 
@@ -139,106 +108,81 @@ const handleCheckResult = async () => {
         <!-- ==================== TAB JURUSAN ==================== -->
         <div v-if="activeTab === 'Jurusan'">
           <h2 class="text-2xl font-bold text-blue-800 mb-4">Pilih Jurusan</h2>
-          <div class="flex justify-center items-center gap-2 w-full max-w-xl mx-auto">
+          <div class="flex flex-col items-center gap-2 w-full max-w-xl mx-auto">
             <MultiSelect
               v-model="selectedJurusan"
               :options="props.jurusan"
               optionLabel="nama_jurusan"
               optionValue="id"
               placeholder="Pilih satu atau lebih jurusan"
-              class="w-full"
+              class="w-full multiselect-custom"
               :showSelectAll="false"
             />
             <Button
               v-if="selectedJurusan.length"
-              icon="pi pi-times"
+              label="Reset Pilihan"
               severity="danger"
-              text
-              rounded
+              class="mt-4 w-full"
               @click="selectedJurusan = []"
             />
           </div>
-          <!-- Loading & Error for Stats Tabs -->
-          <div v-if="isStatsLoading" class="mt-10">
-              <ProgressSpinner />
-              <p class="text-blue-600 mt-2">Memuat data...</p>
-          </div>
-          <p v-if="statsErrorMessage" class="text-red-600 mt-4">{{ statsErrorMessage }}</p>
         </div>
 
         <!-- ==================== TAB PRODI ==================== -->
         <div v-else-if="activeTab === 'Prodi'">
           <h2 class="text-2xl font-bold text-blue-800 mb-4">Pilih Prodi</h2>
-          <div class="flex justify-center items-center gap-2 w-full max-w-xl mx-auto">
+          <div class="flex flex-col items-center gap-2 w-full max-w-xl mx-auto">
             <MultiSelect
               v-model="selectedProdi"
               :options="props.prodi"
               optionLabel="nama_prodi"
               optionValue="id"
               placeholder="Pilih satu atau lebih prodi"
-              class="w-full"
+              class="w-full multiselect-custom"
               :showSelectAll="false"
             />
             <Button
               v-if="selectedProdi.length"
-              icon="pi pi-times"
+              label="Reset Pilihan"
               severity="danger"
-              text
-              rounded
+              class="mt-4 w-full"
               @click="selectedProdi = []"
             />
           </div>
-          <!-- Loading & Error for Stats Tabs -->
-          <div v-if="isStatsLoading" class="mt-10">
-              <ProgressSpinner />
-              <p class="text-blue-600 mt-2">Memuat data...</p>
-          </div>
-          <p v-if="statsErrorMessage" class="text-red-600 mt-4">{{ statsErrorMessage }}</p>
         </div>
 
         <!-- ==================== TAB KELAS ==================== -->
         <div v-else-if="activeTab === 'Kelas'">
           <h2 class="text-2xl font-bold text-blue-800 mb-4">Pilih Kelas</h2>
-          <div class="flex justify-center items-center gap-2 w-full max-w-xl mx-auto">
+          <div class="flex flex-col items-center gap-2 w-full max-w-xl mx-auto">
             <MultiSelect
               v-model="selectedKelas"
               :options="props.kelas"
               optionLabel="nama_kelas"
               optionValue="id"
               placeholder="Pilih satu atau lebih kelas"
-              class="w-full"
+              class="w-full multiselect-custom"
               :showSelectAll="false"
             />
             <Button
               v-if="selectedKelas.length"
-              icon="pi pi-times"
+              label="Reset Pilihan"
               severity="danger"
-              text
-              rounded
+              class="mt-4 w-full"
               @click="selectedKelas = []"
             />
           </div>
-          <!-- Loading & Error for Stats Tabs -->
-          <div v-if="isStatsLoading" class="mt-10">
-              <ProgressSpinner />
-              <p class="text-blue-600 mt-2">Memuat data...</p>
-          </div>
-          <p v-if="statsErrorMessage" class="text-red-600 mt-4">{{ statsErrorMessage }}</p>
         </div>
 
-        <!-- Loading & Error (Moved to specific tabs) -->
-
         <!-- Hasil Chart & Statistik -->
-        <div v-if="chartData && !isStatsLoading" class="mt-12">
+        <div v-if="props.stats && props.stats.chart.datasets.length > 0" class="mt-12">
           <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
             
             <!-- Kolom untuk Statistik Numerik -->
             <div class="lg:col-span-1">
                 <h3 class="text-xl font-bold text-blue-800 mb-4 text-left">Statistik Total Skor</h3>
-
-                <!-- Layout for 1-2 items (Bigger) -->
-                <div v-if="chartData.chart.datasets.length <= 2" class="space-y-4">
-                    <div v-for="(dataset, index) in chartData.chart.datasets" :key="index" class="p-5 border rounded-xl shadow-lg bg-gray-50 text-left">
+                <div v-if="props.stats.chart.datasets.length <= 2" class="space-y-4">
+                    <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-5 border rounded-xl shadow-lg bg-gray-50 text-left">
                         <h4 class="font-bold text-lg text-blue-700 mb-3">{{ dataset.label }}</h4>
                         <div class="space-y-2 text-sm">
                             <div class="flex justify-between">
@@ -256,13 +200,8 @@ const handleCheckResult = async () => {
                         </div>
                     </div>
                 </div>
-
-                <!-- Layout for >2 items (Compact & Horizontal) -->
-                <div v-else :class="[
-                    'grid gap-3',
-                    'grid-cols-1 sm:grid-cols-2' // Default to 1 column on small, 2 on sm and up
-                ]">
-                    <div v-for="(dataset, index) in chartData.chart.datasets" :key="index" class="p-3 border rounded-lg shadow-md bg-gray-50 text-left">
+                <div v-else :class="['grid gap-3', 'grid-cols-1 sm:grid-cols-2']">
+                    <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-3 border rounded-lg shadow-md bg-gray-50 text-left">
                         <h4 class="font-semibold text-base text-blue-700 mb-2">{{ dataset.label }}</h4>
                         <div class="space-y-1 text-xs">
                             <div class="flex justify-between items-center">
@@ -286,12 +225,15 @@ const handleCheckResult = async () => {
             <div class="lg:col-span-2">
               <div class="p-6 border rounded-xl shadow-lg bg-gray-50 h-full">
                 <h3 class="text-xl font-bold text-blue-800 mb-5 text-left">Grafik Perbandingan Total Skor</h3>
-                <Chart type="bar" :data="chartData.chart" />
+                <Chart type="bar" :data="props.stats.chart" />
               </div>
             </div>
-
           </div>
         </div>
+        <div v-else-if="['Jurusan', 'Prodi', 'Kelas'].includes(activeTab) && (selectedJurusan.length > 0 || selectedProdi.length > 0 || selectedKelas.length > 0) && !props.stats?.chart.datasets.length" class="mt-10">
+            <p class="text-gray-500">Tidak ada data statistik untuk ditampilkan pada pilihan saat ini.</p>
+        </div>
+
 
         <!-- ==================== TAB INDIVIDU ==================== -->
         <div v-else-if="activeTab === 'Individu'">
@@ -302,7 +244,7 @@ const handleCheckResult = async () => {
               <label for="nim" class="block text-gray-700 font-semibold mb-2">NIM</label>
               <input
                 id="nim"
-                v-model="nim"
+                v-model="form.nim"
                 type="text"
                 placeholder="Masukkan NIM"
                 class="w-full border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -310,34 +252,32 @@ const handleCheckResult = async () => {
             </div>
 
             <div class="mb-6">
-              <label for="passwrd" class="block text-gray-700 font-semibold mb-2">Password</label>
+              <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
               <input
-                id="passwrd"
-                v-model="passwrd"
+                id="password"
+                v-model="form.password"
                 type="password"
                 placeholder="Masukkan Password"
                 class="w-full border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+            
+            <p v-if="errors.individu" class="text-red-600 text-sm mb-4">{{ errors.individu }}</p>
 
             <Button
               label="Lihat Hasil"
               class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg transition"
               @click="handleCheckResult"
-              :disabled="isIndividuLoading"
+              :disabled="form.processing"
             />
+             <div v-if="form.processing" class="mt-4 text-center">
+                <ProgressSpinner style="width:30px; height:30px" />
+             </div>
           </div>
-
-          <!-- Loading & Error for Individu Tab -->
-          <div v-if="isIndividuLoading" class="mt-10">
-              <ProgressSpinner />
-              <p class="text-blue-600 mt-2">Memuat data...</p>
-          </div>
-          <p v-if="individuErrorMessage" class="text-red-600 mt-4">{{ individuErrorMessage }}</p>
 
           <!-- Hasil EPT Individu -->
-          <div v-if="eptResults" class="mt-10 flex flex-wrap justify-center gap-6">
-            <div v-for="(r, index) in eptResults" :key="index"
+          <div v-if="props.eptResults" class="mt-10 flex flex-wrap justify-center gap-6">
+            <div v-for="(r, index) in props.eptResults" :key="index"
                 class="bg-gradient-to-br from-white to-blue-50 border border-gray-200 rounded-3xl shadow-lg p-6 w-72 flex flex-col justify-between transition-transform hover:scale-105">
               
               <div class="text-center mb-4">
@@ -372,3 +312,23 @@ const handleCheckResult = async () => {
     </Layout>
   </div>
 </template>
+
+<style scoped>
+/* Custom styling for MultiSelect tokens to stack vertically */
+.multiselect-custom .p-multiselect-label {
+  display: flex;
+  flex-wrap: wrap; /* Allow tokens to wrap to the next line */
+  padding: 0.5rem 0.75rem; /* Adjust padding as needed */
+}
+
+.multiselect-custom .p-multiselect-token {
+  display: block; /* Make each token take full width */
+  margin-bottom: 4px; /* Add some space between tokens */
+  width: 100%; /* Ensure it takes full width */
+}
+
+/* Adjust the container if needed */
+.multiselect-custom .p-multiselect-label-container {
+  display: block; /* Ensure the container allows vertical stacking */
+}
+</style>

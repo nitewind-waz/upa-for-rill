@@ -26,7 +26,7 @@ Route::get('/jadwal', function(){
 
 Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasil');
 Route::post('/hasil/check', [EptResultMahasiswaController::class, 'checkResult'])->name('hasil.check');
-Route::post('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->name('hasil.stats');
+Route::get('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->name('hasil.stats');
 
 
 
