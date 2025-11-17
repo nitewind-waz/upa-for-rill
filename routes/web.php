@@ -11,7 +11,9 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\EptResultMahasiswaController;
 
 Route::prefix('admin')->name('admin.')->group(function () {
-    Route::resource('berita', BeritaController::class);
+    Route::resource('berita', BeritaController::class)->parameters([
+        'berita' => 'berita',
+    ]);
 });
 
 Route::get('/lololol', function () {

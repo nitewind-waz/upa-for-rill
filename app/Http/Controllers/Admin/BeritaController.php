@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Storage;
 
 class BeritaController extends Controller
 {
+    /**
+     * Display a listing of the resource.
+     */
     public function index()
     {
         return Inertia::render('admin/BeritaAdmin', [
@@ -17,6 +20,9 @@ class BeritaController extends Controller
         ]);
     }
 
+    /**
+     * Store a newly created resource in storage.
+     */
     public function store(Request $request)
     {
         $request->validate([
@@ -42,6 +48,9 @@ class BeritaController extends Controller
         return redirect('/admin/berita')->with('success', 'Berita created successfully.');
     }
 
+    /**
+     * Update the specified resource in storage.
+     */
     public function update(Request $request, Berita $berita)
     {
         $request->validate([
@@ -52,11 +61,13 @@ class BeritaController extends Controller
         ]);
 
         $gambarFilename = $berita->gambar;
+        // Handle the file upload if a new image is provided
         if ($request->hasFile('gambar')) {
-            // Delete old file if it exists
+            // Delete the old image file if it exists
             if ($berita->gambar) {
                 Storage::disk('public')->delete('berita/' . $berita->gambar);
             }
+            // Store the new image and get its filename
             $path = $request->file('gambar')->store('berita', 'public');
             $gambarFilename = basename($path);
         }
@@ -71,11 +82,16 @@ class BeritaController extends Controller
         return redirect('/admin/berita')->with('success', 'Berita updated successfully.');
     }
 
+    /**
+     * Remove the specified resource from storage.
+     */
     public function destroy(Berita $berita)
     {
+        // If the news item has an image, delete it from storage
         if ($berita->gambar) {
             Storage::disk('public')->delete('berita/' . $berita->gambar);
         }
+        // Delete the news item from the database
         $berita->delete();
 
         return redirect('/admin/berita')->with('success', 'Berita deleted successfully.');
