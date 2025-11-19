@@ -40,11 +40,7 @@
 
 <script setup lang="ts">
 import { Link, usePage } from '@inertiajs/vue3';
-import { sidebarVisible } from '@/composables/useLayout';
-import Button from 'primevue/button';
-import Avatar from 'primevue/avatar';
 import Divider from 'primevue/divider';
-import Sidebar from 'primevue/sidebar';
 
 interface MenuItem {
   label: string;
@@ -60,6 +56,7 @@ const menuItems: MenuItem[] = [
   { label: 'Home', icon: 'pi pi-home', route: '/home' },
   { label: 'Mahasiswa', icon: 'pi pi-users', route: '/mahasiswa' },
   { label: 'Kelola Berita', icon: 'pi pi-globe', route: '/admin/berita' },
+  { label: 'Kelola Acara', icon: 'pi pi-calendar-plus', route: '/admin/acara' },
   { label: 'Jadwal', icon: 'pi pi-calendar', route: '/jadwal' },
   { label: 'Nilai EPT', icon: 'pi pi-chart-bar', route: '/nilai-ept' },
   { label: 'Kursus', icon: 'pi pi-book', route: '/kursus' },

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AcaraController;
 use App\Http\Controllers\Admin\BeritaController;
 use App\Models\EptResultMahasiswa;
 use Illuminate\Support\Facades\Route;
@@ -13,6 +14,12 @@ use App\Http\Controllers\EptResultMahasiswaController;
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('berita', BeritaController::class)->parameters([
         'berita' => 'berita',
+    ]);
+});
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::resource('acara', AcaraController::class)->parameters([
+        'acara' => 'acara',
     ]);
 });
 
