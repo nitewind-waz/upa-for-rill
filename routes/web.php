@@ -9,7 +9,7 @@ use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\EptResultMahasiswaController;
 use App\Http\Controllers\PublicCourseController;
-
+use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\EptScheduleController;
 
 Route::get('/', function () {
@@ -29,6 +29,7 @@ Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasi
 Route::post('/hasil/check', [EptResultMahasiswaController::class, 'checkResult'])->name('hasil.check');
 Route::post('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->name('hasil.stats');
 
+Route::get('course', [CourseController::class, 'index'])->name('course.index');
 // admin
  Route::prefix('admin')->group(function () {
 
