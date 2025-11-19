@@ -10,12 +10,7 @@ use App\Http\Controllers\KelasController;
 use App\Http\Controllers\EptResultMahasiswaController;
 use App\Http\Controllers\PublicCourseController;
 
-use App\Http\Controllers\Admin\CourseController;
-
-/*
-    PERINGATAN ROUTE INI BELUM DISESUAIKAN DENGAN MIDDLEWARE
-    KAREA BELUM ADA AUTH UNTUK ADMIN
-*/
+use App\Http\Controllers\EptScheduleController;
 
 Route::get('/', function () {
     return Inertia::render('mahasiswa/Dashboard');
@@ -34,10 +29,23 @@ Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasi
 Route::post('/hasil/check', [EptResultMahasiswaController::class, 'checkResult'])->name('hasil.check');
 Route::post('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->name('hasil.stats');
 
-Route::get('/course', [PublicCourseController::class, 'index'])->name('course');
+// admin
+ Route::prefix('admin')->group(function () {
 
-
-
+    // halaman admin
+    Route::get('/jadwal', [EptScheduleController::class, 'adminIndex'])
+        ->name('admin.jadwal.index');
+    // tambah 
+    Route::post('/jadwal', [EptScheduleController::class, 'store'])
+        ->name('admin.jadwal.store');
+    // update 
+    Route::put('/jadwal/{id}', [EptScheduleController::class, 'update'])
+        ->name('admin.jadwal.update');
+    // hapus 
+    Route::delete('/jadwal/{id}', [EptScheduleController::class, 'destroy'])
+        ->name('admin.jadwal.delete');
+});
 
 
 require __DIR__.'/settings.php';
+
