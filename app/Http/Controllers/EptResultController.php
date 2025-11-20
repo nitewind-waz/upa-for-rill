@@ -7,12 +7,14 @@ use App\Models\Mahasiswa;
 use App\Models\Jurusan;
 use App\Models\Prodi;
 use App\Models\Kelas;
+use App\Models\Publik;
+use App\Models\EptResultPublik;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
-class EptResultMahasiswaController extends Controller
+class EptResultController extends Controller
 {
     /**
      * Menampilkan halaman hasil EPT (Jurusan, Prodi, Kelas, Individu)
@@ -26,6 +28,9 @@ class EptResultMahasiswaController extends Controller
             'prodi' => Prodi::all(),
             'kelas' => Kelas::all(),
             'activeTab' => $activeTab,
+            'eptResults' => session('eptResults'),
+            'mahasiswa' => session('mahasiswa'),
+            'input' => session('input'),
         ]);
     }
 
@@ -35,38 +40,62 @@ class EptResultMahasiswaController extends Controller
     public function checkResult(Request $request)
     {
         $validated = $request->validate([
-            'nim' => 'required|string',
+            'nim' => 'required|string', // This input can be NIM or NIK
             'password' => 'required|string',
         ]);
 
-        // Cari mahasiswa berdasarkan NIM
-        $mahasiswa = Mahasiswa::where('nim', $validated['nim'])->first();
+        $identifier = $validated['nim'];
+        $password = $validated['password'];
 
-        // Validasi NIM
-        if (!$mahasiswa){
-            return back()->withErrors(['individu' => 'NIM tidak ditemukan!'])->withInput();
-        }
+        // 1. Try to find as Mahasiswa
+        $mahasiswa = Mahasiswa::where('nim', $identifier)->first();
 
-        // Validasi Password
-        if (! Hash::check($validated['password'], $mahasiswa->password)) {
-            return back()->withErrors(['individu' => 'Password salah!'])->withInput();
-        }
+        if ($mahasiswa) {
+            // Found as Mahasiswa, validate password
+            if (!Hash::check($password, $mahasiswa->password)) {
+                return back()->withErrors(['individu' => 'Password salah!'])->withInput();
+            }
 
-        // Ambil hasil EPT mahasiswa
-        $results = EptResultMahasiswa::where('mahasiswa_id', $mahasiswa->id)
-            ->orderByDesc('tahun')
-            ->get(['tahun', 'listening', 'structure', 'reading', 'total_score', 'sertifikat_pdf']);
+            // Fetch Mahasiswa EPT results
+            $results = EptResultMahasiswa::where('mahasiswa_id', $mahasiswa->id)
+                ->orderByDesc('tahun')
+                ->get(['tahun', 'listening', 'structure', 'reading', 'total_score', 'sertifikat_pdf', 'level']);
 
-        return Inertia::render('mahasiswa/Hasil', [
-            'jurusan' => Jurusan::all(),
-            'prodi' => Prodi::all(),
-            'kelas' => Kelas::all(),
-            'activeTab' => 'Individu',
-            'eptResults' => $results,
-            'mahasiswa' => [
-                'nim' => $mahasiswa->nim,
+            $user_info = [
+                'nim' => $mahasiswa->nim, // nim for Mahasiswa
                 'nama' => $mahasiswa->nama,
-            ],
+            ];
+
+        } else {
+            // 2. If not Mahasiswa, try to find as Publik
+            $publik = Publik::where('nik', $identifier)->first();
+
+            if ($publik) {
+                // Found as Publik, validate password
+                if (!Hash::check($password, $publik->password)) {
+                    return back()->withErrors(['individu' => 'Password salah!'])->withInput();
+                }
+
+                // Fetch Publik EPT results
+                $results = EptResultPublik::where('publik_id', $publik->id)
+                    ->orderByDesc('tahun')
+                    ->get(['tahun', 'listening', 'structure', 'reading', 'total_score', 'sertifikat_pdf', 'level']);
+                
+                $user_info = [
+                    'nim' => $publik->nik, // nik for Publik
+                    'nama' => $publik->nama_lengkap,
+                ];
+
+            } else {
+                // 3. Not found in either table
+                return back()->withErrors(['individu' => 'NIM/NIK tidak ditemukan!'])->withInput();
+            }
+        }
+
+        // Store results in session and redirect
+        return redirect()->route('hasil')->with([
+            'eptResults' => $results,
+            'mahasiswa' => $user_info,
             'input' => $request->only(['nim']),
         ]);
     }
@@ -87,6 +116,7 @@ class EptResultMahasiswaController extends Controller
         
         $datasets = [];
         $detailed_statistics = [];
+        $allMahasiswaIds = collect();
         $backgroundColors = ['#42A5F5', '#FFA726', '#66BB6A', '#EF5350', '#AB47BC', '#26A69A'];
         $colorIndex = 0;
 
@@ -113,6 +143,9 @@ class EptResultMahasiswaController extends Controller
                 }
 
                 if ($mahasiswaIds->isEmpty()) continue;
+
+                // Kumpulkan semua ID mahasiswa
+                $allMahasiswaIds = $allMahasiswaIds->merge($mahasiswaIds);
 
                 $stats = EptResultMahasiswa::whereIn('mahasiswa_id', $mahasiswaIds)
                     ->select(
@@ -154,12 +187,35 @@ class EptResultMahasiswaController extends Controller
             }
         }
 
+        // --- Data untuk Pie Chart Distribusi Level ---
+        $levelPieChart = null;
+        if ($allMahasiswaIds->isNotEmpty()) {
+            $levelDistribution = DB::table('ept_results_mahasiswa')
+                ->whereIn('mahasiswa_id', $allMahasiswaIds->unique())
+                ->select('level', DB::raw('count(*) as total'))
+                ->groupBy('level')
+                ->get();
+
+            if ($levelDistribution->isNotEmpty()) {
+                $levelPieChart = [
+                    'labels' => $levelDistribution->pluck('level'),
+                    'datasets' => [
+                        [
+                            'data' => $levelDistribution->pluck('total'),
+                            'backgroundColor' => ['#EF5350', '#AB47BC', '#FFA726', '#66BB6A', '#42A5F5'],
+                        ]
+                    ]
+                ];
+            }
+        }
+
         $responseData = [
             'chart' => [
                 'labels' => ['Tertinggi', 'Terendah', 'Rata-rata'],
                 'datasets' => $datasets,
             ],
-            'detailed_statistics' => $detailed_statistics
+            'detailed_statistics' => $detailed_statistics,
+            'levelPieChart' => $levelPieChart, // Tambahkan data pie chart ke response
         ];
 
         return Inertia::render('mahasiswa/Hasil', [

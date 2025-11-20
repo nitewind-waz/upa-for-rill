@@ -23,18 +23,18 @@ const props = defineProps({
 
 const activeTab = ref(props.activeTab)
 
-// === State untuk tab Individu (menggunakan useForm) ===
+// === State Individu ===
 const form = useForm({
   nim: props.input?.nim || '',
   password: ''
 })
 
-// === State dropdown untuk Statistik ===
+// === Dropdown State ===
 const selectedJurusan = ref(props.input?.level === 'jurusan' ? props.input.ids : [])
 const selectedProdi = ref(props.input?.level === 'prodi' ? props.input.ids : [])
 const selectedKelas = ref(props.input?.level === 'kelas' ? props.input.ids : [])
 
-// === Fungsi untuk cek hasil EPT individu ===
+// === Fungsi Individu ===
 const handleCheckResult = () => {
   form.post('/hasil/check', {
     preserveState: (page) => Object.keys(page.props.errors).length > 0,
@@ -42,10 +42,9 @@ const handleCheckResult = () => {
   })
 }
 
-// === Ambil data statistik untuk grafik (menggunakan router.get) ===
+// === Ambil Statistik ===
 const getStats = debounce((level, ids) => {
   if (ids.length === 0) {
-    // Jika pilihan dikosongkan, kembali ke halaman dasar tanpa data statistik
     router.get('/hasil', { tab: level.charAt(0).toUpperCase() + level.slice(1) }, { preserveState: true, preserveScroll: true, replace: true });
     return;
   }
@@ -53,22 +52,44 @@ const getStats = debounce((level, ids) => {
   router.get('/hasil/stats', { level, ids }, {
     preserveState: true,
     preserveScroll: true,
-    replace: true // Ganti state history agar tidak menumpuk saat memilih
+    replace: true
   })
-}, 300); // Debounce 300ms
+}, 300);
 
-// Watchers untuk auto-update
+// Watchers auto update
 watch(selectedJurusan, (newVal) => getStats('jurusan', newVal))
 watch(selectedProdi, (newVal) => getStats('prodi', newVal))
 watch(selectedKelas, (newVal) => getStats('kelas', newVal))
 
-// === Navigasi antar tab ===
+// === Navigasi Tab ===
 const loadTabData = (tab) => {
   activeTab.value = tab
-  // Cukup ganti URL untuk mencerminkan tab aktif tanpa reload
   router.visit(`/hasil?tab=${tab}`, { preserveState: true, preserveScroll: true, replace: true })
 }
+
+// === NEW: Bar Chart Options biar tinggi dan full ===
+const barChartOptions = {
+  maintainAspectRatio: false,
+  responsive: true,
+  plugins: {
+    legend: {
+      position: 'bottom',
+      labels: { color: '#333', padding: 20 }
+    }
+  },
+  scales: {
+    x: {
+      ticks: { color: '#333' },
+      grid: { display: false }
+    },
+    y: {
+      ticks: { color: '#333' },
+      beginAtZero: true
+    }
+  }
+}
 </script>
+
 
 <template>
   <div class="bg-white min-h-screen">
@@ -175,59 +196,69 @@ const loadTabData = (tab) => {
         </div>
 
         <!-- Hasil Chart & Statistik -->
-        <div v-if="props.stats && props.stats.chart.datasets.length > 0" class="mt-12">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
-            <!-- Kolom untuk Statistik Numerik -->
-            <div class="lg:col-span-1">
-                <h3 class="text-xl font-bold text-blue-800 mb-4 text-left">Statistik Total Skor</h3>
-                <div v-if="props.stats.chart.datasets.length <= 2" class="space-y-4">
-                    <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-5 border rounded-xl shadow-lg bg-gray-50 text-left">
-                        <h4 class="font-bold text-lg text-blue-700 mb-3">{{ dataset.label }}</h4>
-                        <div class="space-y-2 text-sm">
-                            <div class="flex justify-between">
-                                <p class="font-medium text-gray-600">Skor Tertinggi:</p>
-                                <p class="font-semibold text-blue-600">{{ dataset.data[0] }}</p>
-                            </div>
-                            <div class="flex justify-between">
-                                <p class="font-medium text-gray-600">Skor Terendah:</p>
-                                <p class="font-semibold text-red-600">{{ dataset.data[1] }}</p>
-                            </div>
-                            <div class="flex justify-between">
-                                <p class="font-medium text-gray-600">Rata-rata Skor:</p>
-                                <p class="font-semibold text-green-600">{{ dataset.data[2] }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div v-else :class="['grid gap-3', 'grid-cols-1 sm:grid-cols-2']">
-                    <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-3 border rounded-lg shadow-md bg-gray-50 text-left">
-                        <h4 class="font-semibold text-base text-blue-700 mb-2">{{ dataset.label }}</h4>
-                        <div class="space-y-1 text-xs">
-                            <div class="flex justify-between items-center">
-                                <p class="font-medium text-gray-600">Tertinggi:</p>
-                                <p class="font-bold text-blue-600">{{ dataset.data[0] }}</p>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <p class="font-medium text-gray-600">Terendah:</p>
-                                <p class="font-bold text-red-600">{{ dataset.data[1] }}</p>
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <p class="font-medium text-gray-600">Rata-rata:</p>
-                                <p class="font-bold text-green-600">{{ dataset.data[2] }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Kolom untuk Grafik -->
-            <div class="lg:col-span-2">
-              <div class="p-6 border rounded-xl shadow-lg bg-gray-50 h-full">
-                <h3 class="text-xl font-bold text-blue-800 mb-5 text-left">Grafik Perbandingan Total Skor</h3>
-                <Chart type="bar" :data="props.stats.chart" />
+        <div v-if="props.stats && props.stats.chart.datasets.length > 0" class="mt-12 flex flex-col gap-8">
+          
+          <!-- ROW 1: Statistik Numerik -->
+          <div>
+              <h3 class="text-xl font-bold text-blue-800 mb-4 text-left">Statistik Total Skor</h3>
+              <div v-if="props.stats.chart.datasets.length <= 2" class="space-y-4">
+                  <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-5 border rounded-xl shadow-lg bg-gray-50 text-left">
+                      <h4 class="font-bold text-lg text-blue-700 mb-3">{{ dataset.label }}</h4>
+                      <div class="space-y-2 text-sm">
+                          <div class="flex justify-between">
+                              <p class="font-medium text-gray-600">Skor Tertinggi:</p>
+                              <p class="font-semibold text-blue-600">{{ dataset.data[0] }}</p>
+                          </div>
+                          <div class="flex justify-between">
+                              <p class="font-medium text-gray-600">Skor Terendah:</p>
+                              <p class="font-semibold text-red-600">{{ dataset.data[1] }}</p>
+                          </div>
+                          <div class="flex justify-between">
+                              <p class="font-medium text-gray-600">Rata-rata Skor:</p>
+                              <p class="font-semibold text-green-600">{{ dataset.data[2] }}</p>
+                          </div>
+                      </div>
+                  </div>
               </div>
-            </div>
+              <div v-else :class="['grid gap-3', 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4']">
+                  <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-3 border rounded-lg shadow-md bg-gray-50 text-left">
+                      <h4 class="font-semibold text-base text-blue-700 mb-2">{{ dataset.label }}</h4>
+                      <div class="space-y-1 text-xs">
+                          <div class="flex justify-between items-center">
+                              <p class="font-medium text-gray-600">Tertinggi:</p>
+                              <p class="font-bold text-blue-600">{{ dataset.data[0] }}</p>
+                          </div>
+                          <div class="flex justify-between items-center">
+                              <p class="font-medium text-gray-600">Terendah:</p>
+                              <p class="font-bold text-red-600">{{ dataset.data[1] }}</p>
+                          </div>
+                          <div class="flex justify-between items-center">
+                              <p class="font-medium text-gray-600">Rata-rata:</p>
+                              <p class="font-bold text-green-600">{{ dataset.data[2] }}</p>
+                          </div>
+                      </div>
+                  </div>
+              </div>
+          </div>
+
+          <!-- ROW 2: Charts -->
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <!-- Bar Chart -->
+              <div class="p-6 border rounded-xl shadow-lg bg-gray-50">
+                <h3 class="text-xl font-bold text-blue-800 mb-5 text-left">Grafik Perbandingan Total Skor</h3>
+                <Chart 
+                  type="bar" 
+                  :data="props.stats.chart" 
+                  :options="barChartOptions"
+                  style="height: 450px;"  
+                />
+              </div>
+
+              <!-- Pie Chart -->
+              <div v-if="props.stats.levelPieChart" class="p-6 border rounded-xl shadow-lg bg-gray-50">
+                  <h3 class="text-xl font-bold text-blue-800 mb-5 text-left">Distribusi Level Mahasiswa</h3>
+                  <Chart type="pie" :data="props.stats.levelPieChart" />
+              </div>
           </div>
         </div>
         <div v-else-if="['Jurusan', 'Prodi', 'Kelas'].includes(activeTab) && (selectedJurusan.length > 0 || selectedProdi.length > 0 || selectedKelas.length > 0) && !props.stats?.chart.datasets.length" class="mt-10">
@@ -241,12 +272,12 @@ const loadTabData = (tab) => {
 
           <div class="max-w-md mx-auto text-left bg-white border border-gray-300 rounded-xl shadow-lg p-6">
             <div class="mb-4">
-              <label for="nim" class="block text-gray-700 font-semibold mb-2">NIM</label>
+              <label for="nim" class="block text-gray-700 font-semibold mb-2">NIM / NIK</label>
               <input
                 id="nim"
                 v-model="form.nim"
                 type="text"
-                placeholder="Masukkan NIM"
+                placeholder="Masukkan NIM / NIK"
                 class="w-full border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -276,6 +307,10 @@ const loadTabData = (tab) => {
           </div>
 
           <!-- Hasil EPT Individu -->
+          <div v-if="props.mahasiswa" class="text-center mt-10">
+            <h3 class="text-2xl font-bold text-gray-800">Peserta EPT: {{ props.mahasiswa.nama }}</h3>
+          </div>
+
           <div v-if="props.eptResults" class="mt-10 flex flex-wrap justify-center gap-6">
             <div v-for="(r, index) in props.eptResults" :key="index"
                 class="bg-gradient-to-br from-white to-blue-50 border border-gray-200 rounded-3xl shadow-lg p-6 w-72 flex flex-col justify-between transition-transform hover:scale-105">
@@ -303,6 +338,11 @@ const loadTabData = (tab) => {
               <div class="flex justify-between items-center mt-4 pt-4 border-t-2 border-blue-200">
                 <p class="text-gray-700 font-semibold uppercase">Total</p>
                 <p class="text-blue-800 font-bold text-xl">{{ r.total_score }}</p>
+              </div>
+              <!-- New Level Display -->
+              <div v-if="r.level" class="text-center mt-4 pt-4 border-t-2 border-gray-200">
+                <p class="text-black font-bold uppercase">Level</p>
+                <p class="text-black font-bold text-xl">{{ r.level }}</p>
               </div>
             </div>
           </div>
