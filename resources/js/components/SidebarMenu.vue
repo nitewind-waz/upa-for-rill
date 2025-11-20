@@ -57,7 +57,7 @@ const menuItems: MenuItem[] = [
   { label: 'Mahasiswa', icon: 'pi pi-users', route: '/mahasiswa' },
   { label: 'Kelola Berita', icon: 'pi pi-globe', route: '/admin/berita' },
   { label: 'Kelola Acara', icon: 'pi pi-calendar-plus', route: '/admin/acara' },
-  { label: 'Jadwal', icon: 'pi pi-calendar', route: '/jadwal' },
+  { label: 'Jadwal', icon: 'pi pi-calendar', route: '/admin/jadwal' },
   { label: 'Nilai EPT', icon: 'pi pi-chart-bar', route: '/nilai-ept' },
   { label: 'Kursus', icon: 'pi pi-book', route: '/kursus' },
   { label: 'Berita', icon: 'pi pi-globe', route: '/berita' },

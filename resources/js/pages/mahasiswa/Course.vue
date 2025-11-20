@@ -101,7 +101,7 @@ const contactEmail = () => {
                     label="Lihat Detail"
                     size="small"
                     class="w-full border-none text-white rounded-md text-sm py-2"
-                    style="background-color: #ff8c42 !important;"
+                    style="background-color: blue !important;"
                     @click="openModal(course)"
                 />
             </div>

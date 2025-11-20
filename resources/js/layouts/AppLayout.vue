@@ -17,7 +17,10 @@
             </div>
             <div>
               <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
-                UPA Bahasa
+                UPA
+              </span>
+              <span class="text-xl font-bold bg-gradient-to-r from-orange-700 to-orange-900 bg-clip-text text-transparent">
+                BAHASA POLBAN
               </span>
               <p class="text-xs text-blue-600 font-medium">Politeknik Negeri Bandung</p>
             </div>

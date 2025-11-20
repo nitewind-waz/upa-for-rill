@@ -106,14 +106,11 @@ const filteredJadwal = computed(() => {
 
   <Layout>
     <!-- Header -->
-    <section class="bg-gradient-to-r from-blue-900 to-blue-800 py-14">
-      <div class="container mx-auto px-4">
-        <Chip label="Jadwal EPT" class="mb-3 bg-orange-500 text-white" />
-        <h1 class="text-4xl font-bold text-white mb-2">Jadwal EPT</h1>
-        <p class="text-gray-200 text-lg">
-          Pilih kategori untuk menampilkan jadwal EPT
+    <section class="bg-[#0459A0] text-white py-10 text-center w-screen relative left-1/2 right-1/2 -mx-[50vw]">
+        <h1 class="text-2xl md:text-3xl font-bold">Jadwal EPT</h1>
+        <p class="mt-1 text-sm md:text-base opacity-90">
+            Pilih jadwal sesuai kategori
         </p>
-      </div>
     </section>
 
 <section class="py-10">

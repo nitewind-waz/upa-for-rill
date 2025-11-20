@@ -10,7 +10,6 @@ use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\EptResultMahasiswaController;
-<<<<<<< HEAD
 use App\Http\Controllers\PublicCourseController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\EptScheduleController;
@@ -21,7 +20,7 @@ Route::get('/', function () {
 
 // Course CRUD ADMIN
 Route::get('/admin/course', [CourseController::class, 'index'])->name('admin.course.index');
-Route::get('admin/course/create', [CourseController::class, 'create'])->name('admin.course.create');
+Route::get('/admin/course/create', [CourseController::class, 'create'])->name('admin.course.create');
 Route::post('admin/course/create', [CourseController::class, 'store'])->name('admin.course.store');
 Route::get('/admin/course/{course}/edit', [CourseController::class, 'edit'])->name('admin.course.edit');
 Route::put('/admin/course/{course}', [CourseController::class, 'update'])->name('admin.course.store');
@@ -32,7 +31,7 @@ Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasi
 Route::post('/hasil/check', [EptResultMahasiswaController::class, 'checkResult'])->name('hasil.check');
 Route::post('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->name('hasil.stats');
 
-Route::get('course', [CourseController::class, 'index'])->name('course.index');
+Route::get('course', [PublicCourseController::class, 'index'])->name('course.index');
 // admin
  Route::prefix('admin')->group(function () {
 
@@ -50,8 +49,6 @@ Route::get('course', [CourseController::class, 'index'])->name('course.index');
         ->name('admin.jadwal.delete');
 });
 
-
-=======
 
 Route::prefix('admin')->name('admin.')->group(function () {
     Route::resource('berita', BeritaController::class)->parameters([
@@ -75,7 +72,5 @@ Route::get('/jadwal', function(){
     return Inertia::render('mahasiswa/Jadwal');
 })->name('jadwal');
 
-
->>>>>>> d21cd58aaa6e8af4afb197f1d0047dc82e1b93bb
 require __DIR__.'/settings.php';
 
