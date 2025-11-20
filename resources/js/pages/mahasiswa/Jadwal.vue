@@ -2,229 +2,277 @@
 import Layout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
+
+// PrimeVue Components
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Card from 'primevue/card';
-import Chip from 'primevue/chip';
+import Dropdown from 'primevue/dropdown';
+import Tag from 'primevue/tag';
+import Button from 'primevue/button';
 
-const selectedUserType = ref('');
-const selectedJurusan = ref('');
-const selectedProdi = ref('');
+// --- DEFINISI PROPS (Data dari Controller Laravel) ---
+const props = defineProps({
+    // Struktur: [{ nama: 'Jurusan A', prodi: [{ nama: 'Prodi A' }] }]
+    jurusanList: {
+        type: Array,
+        default: () => []
+    },
+    // Data Jadwal Mahasiswa (Master Data)
+    jadwalMahasiswa: {
+        type: Array,
+        default: () => []
+    },
+    // Data Jadwal Publik (Master Data)
+    jadwalPublik: {
+        type: Array,
+        default: () => []
+    }
+});
 
-const jurusanList = ref([
-  {
-    nama: 'Teknik Informatika dan Komputer',
-    prodi: [
-      { nama: 'D4 Teknik Informatika' },
-      { nama: 'D3 Teknik Informatika' },
-      { nama: 'D4 Teknik Komputer' },
-    ],
-  },
-  {
-    nama: 'Administrasi Niaga',
-    prodi: [{ nama: 'D4 Administrasi Bisnis' }],
-  },
-]);
+// Static Options
+const userTypes = [
+    { label: 'Mahasiswa Polban', value: 'mahasiswa' },
+    { label: 'Peserta Umum / Publik', value: 'publik' }
+];
 
-const jadwalMahasiswa = ref([
-  {
-    id: 1,
-    prodi: 'D4 Teknik Informatika',
-    kelas: '2A-D4',
-    tempat: '402',
-    gedung: 'Gedung H',
-    tanggal: 'Sabtu, 20 September 2025',
-    waktu_mulai: '09:00',
-    waktu_selesai: '12:00',
-  },
-  {
-    id: 2,
-    prodi: 'D4 Teknik Informatika',
-    kelas: '2B-D4',
-    tempat: '404',
-    gedung: 'Gedung H',
-    tanggal: 'Sabtu, 20 September 2025',
-    waktu_mulai: '09:00',
-    waktu_selesai: '12:00',
-  },
-  {
-    id: 3,
-    prodi: 'D3 Teknik Informatika',
-    kelas: '2A-D3',
-    tempat: '402',
-    gedung: 'Gedung H',
-    tanggal: 'Sabtu, 20 September 2025',
-    waktu_mulai: '13:00',
-    waktu_selesai: '15:00',
-  },
-]);
+// State Filter
+const selectedUserType = ref(null);
+const selectedJurusan = ref(null);
+const selectedProdi = ref(null);
 
-const jadwalPublik = ref([
-  {
-    id: 1,
-    prodi: 'Publik Batch 1',
-    kelas: '-',
-    tempat: 'Lab Bahasa 1',
-    gedung: 'Gedung UPA',
-    tanggal: 'Minggu, 25 September 2025',
-    waktu_mulai: '09:00',
-    waktu_selesai: '11:00',
-  },
-  {
-    id: 2,
-    prodi: 'Publik Batch 2',
-    kelas: '-',
-    tempat: 'Lab Bahasa 2',
-    gedung: 'Gedung UPA',
-    tanggal: 'Sabtu, 18 Oktober 2025',
-    waktu_mulai: '13:00',
-    waktu_selesai: '15:00',
-  },
-]);
-
+// Logic Helper
 const getProdiByJurusan = (jurusanNama) => {
-  const jurusan = jurusanList.value.find((j) => j.nama === jurusanNama);
+  // Mengambil dari props.jurusanList
+  const jurusan = props.jurusanList.find((j) => j.nama === jurusanNama);
   return jurusan ? jurusan.prodi : [];
 };
 
+// Computed Filter Logic
 const filteredJadwal = computed(() => {
+  // 1. Jika Publik, ambil dari props.jadwalPublik
   if (selectedUserType.value === 'publik') {
-    return jadwalPublik.value;
-  } else if (selectedUserType.value === 'mahasiswa') {
+    return props.jadwalPublik;
+  } 
+  // 2. Jika Mahasiswa, filter dari props.jadwalMahasiswa berdasarkan Prodi
+  else if (selectedUserType.value === 'mahasiswa') {
     if (selectedProdi.value) {
-      return jadwalMahasiswa.value.filter(
+      return props.jadwalMahasiswa.filter(
         (j) => j.prodi === selectedProdi.value
       );
     }
   }
   return [];
 });
+
+const resetFilter = () => {
+    selectedUserType.value = null;
+    selectedJurusan.value = null;
+    selectedProdi.value = null;
+}
 </script>
 
 <template>
   <Head title="Jadwal EPT - UPA Bahasa POLBAN" />
 
   <Layout>
-    <!-- Header -->
-    <section class="bg-[#0459A0] text-white py-10 text-center w-screen relative left-1/2 right-1/2 -mx-[50vw]">
-        <h1 class="text-2xl md:text-3xl font-bold">Jadwal EPT</h1>
-        <p class="mt-1 text-sm md:text-base opacity-90">
-            Pilih jadwal sesuai kategori
-        </p>
-    </section>
+    <div class="min-h-screen bg-slate-50 py-10">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="text-center mb-10">
+            <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight sm:text-4xl">
+                Jadwal Tes EPT
+            </h1>
+            <p class="mt-3 max-w-2xl mx-auto text-xl text-slate-500 sm:mt-4">
+                Cek jadwal dan lokasi tes English Proficiency Test UPA Bahasa.
+            </p>
+        </div>
 
-<section class="py-10">
-  <div class="container mx-auto px-4">
-    <div
-      class="bg-gray-50 rounded-xl shadow-sm p-6 flex flex-wrap gap-6 items-end justify-start"
-    >
-      <div class="flex flex-col w-48">
-        <label
-          class="font-semibold mb-1 bg-[#1E3A8A] text-white px-3 py-1 rounded-t-md"
-        >
-          Pengguna
-        </label>
-        <select
-          v-model="selectedUserType"
-          class="border rounded-b-md p-2 bg-white"
-        >
-          <option value="">-- Pilih --</option>
-          <option value="mahasiswa">Mahasiswa</option>
-          <option value="publik">Publik</option>
-        </select>
-      </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+                    <i class="pi pi-filter text-blue-600"></i> Filter Pencarian
+                </h3>
+                <Button 
+                    v-if="selectedUserType" 
+                    label="Reset Filter" 
+                    icon="pi pi-refresh" 
+                    text 
+                    size="small" 
+                    @click="resetFilter"
+                />
+            </div>
 
-      <!-- Jurusan -->
-      <div
-        v-if="selectedUserType === 'mahasiswa'"
-        class="flex flex-col w-64"
-      >
-        <label
-          class="font-semibold mb-1 bg-[#1E3A8A] text-white px-3 py-1 rounded-t-md"
-        >
-          Jurusan
-        </label>
-        <select
-          v-model="selectedJurusan"
-          class="border rounded-b-md p-2 bg-white"
-        >
-          <option value="">-- Pilih Jurusan --</option>
-          <option
-            v-for="j in jurusanList"
-            :key="j.nama"
-            :value="j.nama"
-          >
-            {{ j.nama }}
-          </option>
-        </select>
-      </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div class="flex flex-col gap-2">
+                    <label class="text-sm font-medium text-slate-600">Kategori Peserta</label>
+                    <Dropdown 
+                        v-model="selectedUserType" 
+                        :options="userTypes" 
+                        optionLabel="label" 
+                        optionValue="value" 
+                        placeholder="Pilih Kategori" 
+                        class="w-full"
+                        showClear
+                    />
+                </div>
 
-      <!-- Program Studi -->
-      <div
-        v-if="selectedJurusan && selectedUserType === 'mahasiswa'"
-        class="flex flex-col w-64"
-      >
-        <label
-          class="font-semibold mb-1 bg-[#1E3A8A] text-white px-3 py-1 rounded-t-md"
-        >
-          Program Studi
-        </label>
-        <select
-          v-model="selectedProdi"
-          class="border rounded-b-md p-2 bg-white"
-        >
-          <option value="">-- Pilih Prodi --</option>
-          <option
-            v-for="p in getProdiByJurusan(selectedJurusan)"
-            :key="p.nama"
-            :value="p.nama"
-          >
-            {{ p.nama }}
-          </option>
-        </select>
+                <div class="flex flex-col gap-2" v-if="selectedUserType === 'mahasiswa'">
+                    <label class="text-sm font-medium text-slate-600">Jurusan</label>
+                    <Dropdown 
+                        v-model="selectedJurusan" 
+                        :options="props.jurusanList" 
+                        optionLabel="nama" 
+                        optionValue="nama" 
+                        placeholder="Pilih Jurusan" 
+                        class="w-full"
+                        filter
+                        :disabled="!selectedUserType"
+                    />
+                </div>
+
+                <div class="flex flex-col gap-2" v-if="selectedUserType === 'mahasiswa'">
+                    <label class="text-sm font-medium text-slate-600">Program Studi</label>
+                    <Dropdown 
+                        v-model="selectedProdi" 
+                        :options="getProdiByJurusan(selectedJurusan)" 
+                        optionLabel="nama" 
+                        optionValue="nama" 
+                        placeholder="Pilih Prodi" 
+                        class="w-full"
+                        :disabled="!selectedJurusan"
+                        emptyMessage="Pilih Jurusan terlebih dahulu"
+                    />
+                </div>
+                
+                <div class="hidden md:block col-span-2" v-if="selectedUserType === 'publik'">
+                    <div class="h-full flex items-center text-slate-400 text-sm italic bg-slate-50 rounded-lg px-4 border border-dashed border-slate-200">
+                        Jadwal publik ditampilkan untuk semua peserta umum.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <transition name="fade" mode="out-in">
+            
+            <div v-if="filteredJadwal.length" class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-6 border-b border-slate-100 bg-slate-50/50 flex justify-between items-center">
+                     <div>
+                        <h3 class="text-lg font-bold text-slate-800">Hasil Pencarian</h3>
+                        <p class="text-sm text-slate-500">Menampilkan {{ filteredJadwal.length }} jadwal tersedia.</p>
+                     </div>
+                </div>
+
+                <DataTable :value="filteredJadwal" stripedRows showGridlines class="p-datatable-sm">
+                    
+                    <Column field="prodi" header="Program Studi / Batch" style="min-width: 200px">
+                        <template #body="{ data }">
+                            <span class="font-semibold text-slate-700">{{ data.prodi }}</span>
+                        </template>
+                    </Column>
+                    
+                    <Column field="kelas" header="Kelas" style="min-width: 100px">
+                        <template #body="{ data }">
+                            <Tag :value="data.kelas" severity="info" class="font-mono" rounded />
+                        </template>
+                    </Column>
+                    
+                    <Column header="Lokasi" style="min-width: 200px">
+                        <template #body="{ data }">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-slate-700">{{ data.tempat }}</span>
+                                <span class="text-xs text-slate-500">{{ data.gedung }}</span>
+                            </div>
+                        </template>
+                    </Column>
+                    
+                    <Column header="Waktu Pelaksanaan" style="min-width: 220px">
+                        <template #body="{ data }">
+                             <div class="flex flex-col gap-1">
+                                <div class="flex items-center gap-2 text-sm text-slate-700">
+                                    <i class="pi pi-calendar text-slate-400"></i>
+                                    <span>{{ data.tanggal }}</span>
+                                </div>
+                                <div class="flex items-center gap-2 text-sm text-slate-700">
+                                    <i class="pi pi-clock text-slate-400"></i>
+                                    <span>{{ data.waktu }}</span>
+                                </div>
+                            </div>
+                        </template>
+                    </Column>
+
+                     <Column field="status" header="Status" style="min-width: 100px">
+                        <template #body="{ data }">
+                            <Tag 
+                                :value="data.status" 
+                                :severity="data.status === 'Dibuka' ? 'success' : (data.status === 'Penuh' ? 'danger' : 'warning')" 
+                            />
+                        </template>
+                    </Column>
+
+                </DataTable>
+            </div>
+
+            <div v-else-if="!selectedUserType" class="text-center py-20">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-blue-50 mb-4">
+                    <i class="pi pi-search text-blue-400 text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-slate-900">Mulai Pencarian</h3>
+                <p class="text-slate-500 max-w-sm mx-auto mt-2">Silakan pilih <strong>Kategori Peserta</strong> di atas untuk melihat jadwal yang tersedia.</p>
+            </div>
+
+            <div v-else class="text-center py-20">
+                <div class="inline-flex items-center justify-center w-20 h-20 rounded-full bg-slate-100 mb-4">
+                    <i class="pi pi-calendar-times text-slate-400 text-3xl"></i>
+                </div>
+                <h3 class="text-lg font-medium text-slate-900">Jadwal Tidak Ditemukan</h3>
+                <p class="text-slate-500 max-w-sm mx-auto mt-2">Belum ada jadwal EPT untuk pilihan jurusan/prodi tersebut saat ini.</p>
+            </div>
+
+        </transition>
+
       </div>
     </div>
-  </div>
-</section>
-
-    <!-- TABEL HASIL -->
-    <section v-if="filteredJadwal.length" class="pb-16 bg-gray-50">
-      <div class="container mx-auto px-4">
-        <Card>
-          <template #content>
-            <DataTable :value="filteredJadwal" stripedRows responsiveLayout="scroll">
-              <Column field="prodi" header="Prodi" sortable />
-              <Column field="kelas" header="Kelas" sortable />
-              <Column field="tempat" header="Tempat" sortable />
-              <Column field="gedung" header="Gedung" sortable />
-              <Column field="tanggal" header="Tanggal" sortable />
-              <Column field="waktu_mulai" header="Waktu Mulai" sortable />
-              <Column field="waktu_selesai" header="Waktu Selesai" sortable />
-            </DataTable>
-          </template>
-        </Card>
-      </div>
-    </section>
-
-    <section
-      v-else
-      class="py-12 bg-gray-50 text-center text-gray-500 italic"
-    >
-      <p>Silakan pilih opsi lain di atas untuk melihat jadwal EPT.</p>
-    </section>
   </Layout>
 </template>
 
 <style scoped>
-:deep(.p-datatable .p-datatable-thead > tr > th) {
-  background-color: #1e3a8a;   
-  color: white;
+/* Custom PrimeVue overrides for Clean Look */
+:deep(.p-dropdown) {
+    border-radius: 0.5rem;
+    border-color: #e2e8f0;
 }
-select {
-  cursor: pointer;
+:deep(.p-dropdown:not(.p-disabled):hover) {
+    border-color: #3b82f6;
+}
+:deep(.p-dropdown:not(.p-disabled).p-focus) {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
 }
 
-select:hover {
-  border-color: #1e3a8a;
+/* Table Header Styling */
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+    background-color: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    font-size: 0.875rem;
+    padding: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+:deep(.p-datatable .p-datatable-tbody > tr > td) {
+    padding: 1rem;
+    color: #334155;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+/* Transition */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>

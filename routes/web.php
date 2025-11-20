@@ -2,14 +2,13 @@
 
 use App\Http\Controllers\Admin\AcaraController;
 use App\Http\Controllers\Admin\BeritaController;
-use App\Models\EptResultMahasiswa;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
-use App\Http\Controllers\EptResultMahasiswaController;
+use App\Http\Controllers\Admin\EptResultController;
 use App\Http\Controllers\PublicCourseController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\EptScheduleController;
@@ -25,6 +24,12 @@ Route::post('admin/course/create', [CourseController::class, 'store'])->name('ad
 Route::get('/admin/course/{course}/edit', [CourseController::class, 'edit'])->name('admin.course.edit');
 Route::put('/admin/course/{course}', [CourseController::class, 'update'])->name('admin.course.store');
 Route::delete('/admin/course/{course}', [CourseController::class, 'destroy'])->name('admin.course.delete');
+
+// EPT Result
+
+Route::get('/ept', [EptResultController::class, 'index'])->name('ept.index');
+Route::post('/ept', [EptResultController::class, 'store'])->name('ept.store');
+Route::post('/ept/import', [EptResultController::class, 'import'])->name('ept.import');
 
 
 Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasil');

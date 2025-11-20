@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers;
 use App\Models\EptSchedule;
 use Illuminate\Http\Request;
 use Inertia\Inertia;

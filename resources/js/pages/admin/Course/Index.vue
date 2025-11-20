@@ -4,11 +4,15 @@ import { ref } from 'vue';
 
 import AdminLayout from '@/layouts/AdminLayout.vue';
 
+// Komponen PrimeVue
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
-import Button from 'primevue/button';
+import Button from 'primevue/button'; // Kita pakai Button native PrimeVue
 import Tag from 'primevue/tag';
 import Dialog from 'primevue/dialog';
+import InputText from 'primevue/inputtext';
+import IconField from 'primevue/iconfield';
+import InputIcon from 'primevue/inputicon';
 
 interface Course {
   id: number;
@@ -26,6 +30,7 @@ const props = defineProps<{
 
 const showDeleteModal = ref(false);
 const courseToDelete = ref<Course | null>(null);
+const filters = ref({}); // Untuk fitur search nanti jika dibutuhkan
 
 const openAddModal = () => router.get('/admin/course/create');
 const editCourse = (c: Course) => router.get(`/admin/course/${c.id}/edit`);
@@ -46,323 +51,229 @@ const deleteCourse = () => {
   });
 };
 
-const getJenisConfig = (jenis: string) => {
-  const configs = {
-    Umum: { severity: 'info', icon: 'pi-users', color: 'from-blue-500 to-blue-600' },
-    Privat: { severity: 'warning', icon: 'pi-user', color: 'from-amber-500 to-orange-600' },
-    Korporat: { severity: 'success', icon: 'pi-building', color: 'from-emerald-500 to-teal-600' },
+// Helper untuk mapping severity ke komponen Tag PrimeVue
+const getJenisSeverity = (jenis: string) => {
+  const map: Record<string, string> = {
+    'Umum': 'info',
+    'Privat': 'warn',
+    'Korporat': 'success',
+    'Berbayar': 'secondary',
+    'Gratis': 'success'
   };
-  return configs[jenis] || { severity: 'secondary', icon: 'pi-circle', color: 'from-gray-500 to-gray-600' };
+  return map[jenis] || 'secondary';
 };
 
-const getSistemConfig = (sistem: string) => {
-  const configs = {
-    Daring: { severity: 'info', icon: 'pi-wifi', color: 'bg-blue-500' },
-    Luring: { severity: 'warning', icon: 'pi-map-marker', color: 'bg-orange-500' },
-    Hybrid: { severity: 'contrast', icon: 'pi-sitemap', color: 'bg-purple-500' },
+const getSistemSeverity = (sistem: string) => {
+  const map: Record<string, string> = {
+    'Daring': 'info',    // Biru
+    'Luring': 'warn',    // Orange
+    'Hybrid': 'contrast' // Gelap/Ungu
   };
-  return configs[sistem] || { severity: 'secondary', icon: 'pi-circle', color: 'bg-gray-500' };
+  return map[sistem] || 'secondary';
 };
 </script>
-
-
 
 <template>
   <AdminLayout title="Manajemen Kursus">
     <Head title="Manajemen Kursus" />
 
-    <div class="p-6 space-y-6">
+    <div class="space-y-6">
 
-      <!-- HEADER WITH STATS -->
-      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+      <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <div>
-          <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg">
-              <i class="pi pi-book text-white text-lg"></i>
-            </div>
-            <h1 class="text-2xl font-bold text-gray-800">
-              Manajemen Kursus
-            </h1>
-          </div>
+          <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
+            Manajemen Kursus
+          </h1>
+          <p class="text-slate-500 mt-1">
+            Kelola daftar kursus, jadwal, dan sistem pembelajaran.
+          </p>
         </div>
 
-        <!-- Quick Stats -->
-        <div class="flex gap-3">
-          <div class="bg-gradient-to-br from-blue-50 to-blue-100 px-4 py-3 rounded-xl border border-blue-200">
-            <div class="text-xs text-blue-600 font-medium">Total Kursus</div>
-            <div class="text-2xl font-bold text-blue-700">{{ props.courses.length }}</div>
+        <div class="flex gap-4">
+          <div class="px-5 py-2 rounded-lg bg-slate-50 border border-slate-200 text-center min-w-[100px]">
+            <div class="text-xs uppercase tracking-wider text-slate-500 font-semibold mb-1">Total</div>
+            <div class="text-xl font-bold text-slate-900">{{ props.courses.length }}</div>
           </div>
-          <div class="bg-gradient-to-br from-emerald-50 to-emerald-100 px-4 py-3 rounded-xl border border-emerald-200">
-            <div class="text-xs text-emerald-600 font-medium">Aktif</div>
-            <div class="text-2xl font-bold text-emerald-700">{{ props.courses.length }}</div>
+          <div class="px-5 py-2 rounded-lg bg-blue-50 border border-blue-100 text-center min-w-[100px]">
+            <div class="text-xs uppercase tracking-wider text-blue-600 font-semibold mb-1">Aktif</div>
+            <div class="text-xl font-bold text-blue-700">{{ props.courses.length }}</div>
           </div>
         </div>
       </div>
 
-      <!-- TABLE CARD -->
-      <div class="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+      <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+        
+        <div class="p-4 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+          <IconField iconPosition="left">
+            <InputIcon class="pi pi-search" />
+            <InputText placeholder="Cari kursus..." class="w-full sm:w-64" size="small" />
+          </IconField>
+
+          <Button 
+            label="Tambah Kursus" 
+            icon="pi pi-plus" 
+            @click="openAddModal"
+            size="small"
+          />
+        </div>
 
         <DataTable
           :value="props.courses"
           paginator
           :rows="10"
           :rowsPerPageOptions="[5, 10, 20]"
-          class="modern-datatable"
+          tableStyle="min-width: 50rem"
+          
+          class="p-datatable-sm"
+          
+          paginatorTemplate="FirstPageLink PrevPageLink PageLinks NextPageLink LastPageLink RowsPerPageDropdown CurrentPageReport"
+          currentPageReportTemplate="Menampilkan {first} sampai {last} dari {totalRecords} kursus"
         >
 
-          <!-- JUDUL -->
-          <Column field="judul" header="Judul Kursus" sortable style="min-width: 250px">
+          <Column field="judul" header="Informasi Kursus" sortable style="min-width: 250px">
             <template #body="{ data }">
-              <div class="flex items-center gap-3">
-                <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-100 to-purple-100 
-                           flex items-center justify-center border-2 border-indigo-200">
-                  <i class="pi pi-book text-indigo-600 text-lg"></i>
+              <div class="flex items-start gap-3 py-1">
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 flex-shrink-0 mt-1">
+                  <i class="pi pi-book"></i>
                 </div>
                 <div>
-                  <div class="font-semibold text-gray-900">{{ data.judul }}</div>
-                  <div class="text-xs text-gray-500 mt-0.5">ID: #{{ data.id }}</div>
+                  <div class="font-semibold text-slate-900 text-base hover:text-blue-600 transition-colors cursor-pointer" @click="editCourse(data)">
+                    {{ data.judul }}
+                  </div>
+                  <div class="text-xs text-slate-500 mt-1 font-mono">ID: #{{ data.id }}</div>
                 </div>
               </div>
             </template>
           </Column>
 
-          <!-- JENIS -->
-          <Column field="jenis" header="Jenis" sortable style="min-width: 150px">
+          <Column field="jenis" header="Jenis" sortable style="min-width: 120px">
             <template #body="{ data }">
-              <div class="flex items-center gap-2">
-                <div :class="['w-8 h-8 rounded-lg bg-gradient-to-br flex items-center justify-center text-white shadow-md', 
-                              getJenisConfig(data.jenis).color]">
-                  <i :class="['text-sm', getJenisConfig(data.jenis).icon]"></i>
-                </div>
-                <span class="font-medium text-gray-700">{{ data.jenis }}</span>
+              <Tag :value="data.jenis" :severity="getJenisSeverity(data.jenis)" rounded />
+            </template>
+          </Column>
+
+          <Column field="sistem_pembelajaran" header="Sistem" sortable style="min-width: 120px">
+            <template #body="{ data }">
+              <Tag :value="data.sistem_pembelajaran" :severity="getSistemSeverity(data.sistem_pembelajaran)" icon="pi pi-wifi" />
+            </template>
+          </Column>
+
+          <Column field="jadwal" header="Jadwal" sortable style="min-width: 180px">
+            <template #body="{ data }">
+              <div class="flex items-center gap-2 text-slate-600 text-sm">
+                <i class="pi pi-calendar text-slate-400"></i>
+                <span>{{ data.jadwal }}</span>
               </div>
             </template>
           </Column>
 
-          <!-- SISTEM -->
-          <Column field="sistem_pembelajaran" header="Sistem" sortable style="min-width: 150px">
-            <template #body="{ data }">
-              <div class="flex items-center gap-2">
-                <div :class="['w-8 h-8 rounded-lg flex items-center justify-center text-white shadow-md', 
-                              getSistemConfig(data.sistem_pembelajaran).color]">
-                  <i :class="['text-sm', getSistemConfig(data.sistem_pembelajaran).icon]"></i>
-                </div>
-                <span class="font-medium text-gray-700">{{ data.sistem_pembelajaran }}</span>
-              </div>
-            </template>
-          </Column>
-
-          <!-- JADWAL -->
-          <Column field="jadwal" header="Jadwal" sortable style="min-width: 200px">
-            <template #body="{ data }">
-              <div class="flex items-center gap-2 text-gray-600">
-                <i class="pi pi-calendar text-indigo-500"></i>
-                <span class="text-sm">{{ data.jadwal }}</span>
-              </div>
-            </template>
-          </Column>
-
-          <!-- STATUS -->
-          <Column header="Status" style="min-width: 120px">
+          <Column header="Status" style="min-width: 100px">
             <template #body>
               <div class="flex items-center gap-2">
-                <span class="flex h-2 w-2">
-                  <span class="animate-ping absolute h-2 w-2 rounded-full bg-emerald-400 opacity-75"></span>
-                  <span class="relative rounded-full h-2 w-2 bg-emerald-500"></span>
-                </span>
-                <span class="text-sm font-medium text-emerald-600">Aktif</span>
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                <span class="text-sm text-slate-600">Aktif</span>
               </div>
             </template>
           </Column>
 
-          <!-- AKSI -->
-          <Column header="Aksi" :exportable="false" style="min-width: 140px">
+          <Column header="Aksi" :exportable="false" style="min-width: 120px" alignFrozen="right" frozen>
             <template #body="{ data }">
-              <div class="flex gap-2">
-                <button
-                  @click="editCourse(data)"
-                  class="group relative w-9 h-9 rounded-lg bg-gradient-to-br from-blue-500 to-blue-600 
-                         hover:from-blue-600 hover:to-blue-700 text-white
-                         flex items-center justify-center transition-all duration-200 
-                         shadow-md hover:shadow-lg hover:scale-105"
-                  title="Edit"
-                >
-                  <i class="pi pi-pencil text-sm"></i>
-                </button>
-                <button
-                  @click="confirmDeleteCourse(data)"
-                  class="group relative w-9 h-9 rounded-lg bg-gradient-to-br from-red-500 to-red-600 
-                         hover:from-red-600 hover:to-red-700 text-white
-                         flex items-center justify-center transition-all duration-200 
-                         shadow-md hover:shadow-lg hover:scale-105"
-                  title="Hapus"
-                >
-                  <i class="pi pi-trash text-sm"></i>
-                </button>
+              <div class="flex gap-1">
+                <Button 
+                  icon="pi pi-pencil" 
+                  text 
+                  rounded 
+                  severity="secondary" 
+                  @click="editCourse(data)" 
+                  v-tooltip.top="'Edit'"
+                  class="!w-9 !h-9"
+                />
+                <Button 
+                  icon="pi pi-trash" 
+                  text 
+                  rounded 
+                  severity="danger" 
+                  @click="confirmDeleteCourse(data)" 
+                  v-tooltip.top="'Hapus'"
+                  class="!w-9 !h-9 hover:bg-red-50"
+                />
               </div>
             </template>
           </Column>
 
           <template #empty>
             <div class="text-center py-12">
-              <div class="w-20 h-20 mx-auto mb-4 rounded-full bg-gradient-to-br from-gray-100 to-gray-200 
-                         flex items-center justify-center">
-                <i class="pi pi-inbox text-gray-400 text-3xl"></i>
+              <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-slate-50 mb-4">
+                <i class="pi pi-inbox text-slate-300 text-2xl"></i>
               </div>
-              <p class="text-gray-500 font-medium mb-1">Belum ada data kursus</p>
-              <p class="text-gray-400 text-sm">Klik tombol di bawah untuk menambah kursus baru</p>
+              <p class="text-slate-500 font-medium">Belum ada data kursus.</p>
             </div>
           </template>
 
         </DataTable>
-
       </div>
 
-      <!-- TOMBOL TAMBAH -->
-      <div class="flex justify-center">
-        <button
-          @click="openAddModal"
-          class="group relative px-8 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 
-                 hover:from-emerald-600 hover:to-teal-600 text-white font-semibold rounded-xl 
-                 shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105
-                 flex items-center gap-3"
-        >
-          <div class="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center">
-            <i class="pi pi-plus text-sm"></i>
-          </div>
-          <span>Tambah Kursus Baru</span>
-          <i class="pi pi-arrow-right text-sm group-hover:translate-x-1 transition-transform"></i>
-        </button>
-      </div>
-
-      <!-- MODAL -->
       <Dialog
         v-model:visible="showDeleteModal"
         modal
         header="Konfirmasi Hapus"
-        :style="{ width: '28rem' }"
-        class="rounded-2xl"
+        :style="{ width: '400px' }"
+        :draggable="false"
       >
-        <div class="flex items-start gap-4 p-2">
-          <div class="w-12 h-12 rounded-xl bg-gradient-to-br from-red-100 to-red-200 
-                     flex items-center justify-center flex-shrink-0 border-2 border-red-300">
-            <i class="pi pi-exclamation-triangle text-red-600 text-xl"></i>
+        <div class="flex items-start gap-4 py-2">
+          <div class="w-10 h-10 rounded-full bg-red-50 flex items-center justify-center flex-shrink-0">
+            <i class="pi pi-exclamation-triangle text-red-600 text-lg"></i>
           </div>
           <div>
-            <h3 class="font-bold text-gray-900 mb-1.5">Hapus Kursus</h3>
-            <p class="text-gray-600 text-sm leading-relaxed" v-if="courseToDelete">
-              Apakah Anda yakin ingin menghapus kursus 
-              <span class="font-semibold text-gray-900">{{ courseToDelete.judul }}</span>? 
-              <br/>
-              <span class="text-red-600 font-medium">Tindakan ini tidak dapat dibatalkan.</span>
+            <p class="text-slate-600 text-sm leading-relaxed">
+              Apakah Anda yakin ingin menghapus kursus <span class="font-bold text-slate-900">{{ courseToDelete?.judul }}</span>?
+              Data yang dihapus tidak dapat dikembalikan.
             </p>
           </div>
         </div>
 
         <template #footer>
-          <div class="flex gap-3 justify-end">
+          <div class="flex gap-2 justify-end mt-4">
             <Button 
               label="Batal" 
-              text 
-              class="px-5 py-2.5 text-gray-600 hover:bg-gray-100 rounded-lg transition-all font-medium" 
+              severity="secondary" 
+              text
               @click="showDeleteModal = false" 
             />
             <Button 
-              label="Hapus Kursus" 
-              icon="pi pi-trash"
-              class="px-5 py-2.5 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 
-                     text-white border-0 rounded-lg shadow-md hover:shadow-lg transition-all font-medium" 
+              label="Hapus" 
+              severity="danger" 
               @click="deleteCourse" 
+              autofocus
             />
           </div>
         </template>
-
       </Dialog>
 
     </div>
   </AdminLayout>
 </template>
 
+<style scoped>
+/* Kita tidak lagi menggunakan Custom CSS berat (.modern-datatable).
+   Kita mengandalkan styling bawaan PrimeVue + Tailwind Utility
+   agar konsisten dengan Theme Preset "Blue" yang kita buat.
+*/
 
-
-<style>
-/* Modern DataTable Styling */
-.modern-datatable .p-datatable-table {
-  border-spacing: 0;
-}
-
-.modern-datatable .p-datatable-thead > tr > th {
-  background: linear-gradient(to bottom, #f8fafc, #f1f5f9);
-  color: #475569;
-  font-weight: 700;
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  padding: 1rem 1.25rem;
-  border: none;
-  border-bottom: 2px solid #e2e8f0;
-}
-
-.modern-datatable .p-datatable-tbody > tr {
-  background: white;
-  transition: all 0.2s ease;
-}
-
-.modern-datatable .p-datatable-tbody > tr:hover {
-  background: linear-gradient(to right, #f8fafc, #ffffff);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-}
-
-.modern-datatable .p-datatable-tbody > tr > td {
-  padding: 1rem 1.25rem;
-  border: none;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.modern-datatable .p-datatable-tbody > tr:last-child > td {
-  border-bottom: none;
-}
-
-.modern-datatable .p-paginator {
-  background: linear-gradient(to bottom, #ffffff, #f8fafc);
-  border: none;
-  padding: 1rem 1.25rem;
-  border-top: 2px solid #e2e8f0;
-}
-
-.modern-datatable .p-paginator .p-paginator-pages .p-paginator-page {
-  min-width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 0.5rem;
-  margin: 0 0.25rem;
+/* Sedikit tweak untuk font table header agar lebih rapi */
+:deep(.p-datatable .p-datatable-thead > tr > th) {
+  background: #f8fafc; /* slate-50 */
+  color: #64748b;      /* slate-500 */
   font-weight: 600;
-  transition: all 0.2s ease;
+  font-size: 0.875rem;
 }
 
-.modern-datatable .p-paginator .p-paginator-pages .p-paginator-page:hover {
-  background: #f1f5f9;
+:deep(.p-datatable .p-datatable-tbody > tr > td) {
+  color: #334155;      /* slate-700 */
+  font-size: 0.875rem;
 }
 
-.modern-datatable .p-paginator .p-paginator-pages .p-paginator-page.p-highlight {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  border-color: #3b82f6;
-  color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-/* Animations */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.modern-datatable .p-datatable-tbody > tr {
-  animation: fadeIn 0.3s ease-out;
+:deep(.p-paginator) {
+  border-top: 1px solid #e2e8f0;
 }
 </style>
