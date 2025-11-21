@@ -7,7 +7,7 @@ use Laravel\Fortify\Features;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
-use App\Http\Controllers\EptResultController;
+use App\Http\Controllers\EptResultPesertaController;
 
 Route::get('/lololol', function () {
     return Inertia::render('Welcome', [
@@ -24,9 +24,9 @@ Route::get('/jadwal', function(){
 })->name('jadwal');
 
 
-Route::get('/hasil', [EptResultController::class, 'index'])->name('hasil');
-Route::post('/hasil/check', [EptResultController::class, 'checkResult'])->name('hasil.check');
-Route::get('/hasil/stats', [EptResultController::class, 'getStats'])->name('hasil.stats');
+Route::get('/hasil', [EptResultPesertaController::class, 'index'])->name('hasil');
+Route::post('/hasil/check', [EptResultPesertaController::class, 'checkResult'])->name('hasil.check');
+Route::get('/hasil/stats', [EptResultPesertaController::class, 'getStats'])->name('hasil.stats');
 
 
 

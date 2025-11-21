@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EptResultMahasiswa;
+use App\Models\EptResultPesertaMahasiswa;
 use App\Models\Mahasiswa;
 use App\Models\Jurusan;
 use App\Models\Prodi;
@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
 
-class EptResultController extends Controller
+class EptResultPesertaController extends Controller
 {
     /**
      * Menampilkan halaman hasil EPT (Jurusan, Prodi, Kelas, Individu)
@@ -57,7 +57,7 @@ class EptResultController extends Controller
             }
 
             // Fetch Mahasiswa EPT results
-            $results = EptResultMahasiswa::where('mahasiswa_id', $mahasiswa->id)
+            $results = EptResultPesertaMahasiswa::where('mahasiswa_id', $mahasiswa->id)
                 ->orderByDesc('tahun')
                 ->get(['tahun', 'listening', 'structure', 'reading', 'total_score', 'sertifikat_pdf', 'level']);
 
@@ -147,7 +147,7 @@ class EptResultController extends Controller
                 // Kumpulkan semua ID mahasiswa
                 $allMahasiswaIds = $allMahasiswaIds->merge($mahasiswaIds);
 
-                $stats = EptResultMahasiswa::whereIn('mahasiswa_id', $mahasiswaIds)
+                $stats = EptResultPesertaMahasiswa::whereIn('mahasiswa_id', $mahasiswaIds)
                     ->select(
                         DB::raw('MAX(listening) as max_listening'),
                         DB::raw('MIN(listening) as min_listening'),
