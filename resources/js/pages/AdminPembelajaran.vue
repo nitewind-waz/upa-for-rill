@@ -12,6 +12,7 @@ import InputText from "primevue/inputtext";
 import Textarea from "primevue/textarea";
 import FileUpload from "primevue/fileupload";
 import Toast from "primevue/toast";
+import InputError from "@/components/InputError.vue";
 
 const props = defineProps({
     materialPembelajarans: {
@@ -34,6 +35,7 @@ const form = useForm({
     deskripsi_singkat: "",
     link_pdf: null, // This will hold the file object
     link_video: "",
+    remove_pdf: false, // Flag to indicate if the existing PDF should be removed
 });
 
 // For binding inside dialog
@@ -48,6 +50,7 @@ const material = ref({
 // Open NEW dialog
 const openNew = () => {
     form.reset();
+    form.remove_pdf = false; // Reset the flag
     material.value = {
         id: null,
         judul: "",
@@ -73,6 +76,8 @@ const onFileSelect = (event: any) => {
 
 // Save NEW or UPDATE
 const saveMaterial = () => {
+    form.clearErrors(); // Clear previous errors
+
     form.id = material.value.id;
     form.judul = material.value.judul;
     form.deskripsi_singkat = material.value.deskripsi_singkat;
@@ -80,14 +85,22 @@ const saveMaterial = () => {
 
     // Client-side validation for required fields
     if (!form.judul || !form.deskripsi_singkat) {
-        toast.add({ severity: "error", summary: "Error", detail: "Isi semua field wajib!", life: 2000 });
+        form.errors.judul = form.errors.judul || "Judul wajib diisi.";
+        form.errors.deskripsi_singkat = form.errors.deskripsi_singkat || "Deskripsi Singkat wajib diisi.";
+        return;
+    }
+
+    // For new materials or when editing, require at least a file or a link.
+    if (!form.link_pdf && !form.link_video && !material.value.link_pdf_url) {
+        form.errors.link_pdf = "Harap unggah file atau masukkan tautan video.";
+        form.errors.link_video = "Harap unggah file atau masukkan tautan video.";
         return;
     }
 
     if (form.id) {
         // Update: Inertia requires POST for multipart forms, so we use _method: "PUT"
         form.transform((data) => ({ ...data, _method: "PUT" }))
-            .post(route("admin.pembelajaran.update", form.id), {
+            .post('/admin/pembelajaran/' + form.id, {
                 forceFormData: true, // Important for file uploads
                 onSuccess: () => {
                     toast.add({ severity: "success", summary: "Berhasil", detail: "Materi diperbarui!", life: 3000 });
@@ -95,12 +108,15 @@ const saveMaterial = () => {
                 },
                 onError: (errors) => {
                     console.error(errors);
-                    toast.add({ severity: "error", summary: "Error", detail: "Gagal memperbarui: " + (errors.link_pdf || errors.link_video || errors.judul || errors.deskripsi_singkat || 'Periksa kembali isian Anda'), life: 3000 });
+                    // If no specific field errors, show a general error toast
+                    if (Object.keys(errors).length === 0) {
+                        toast.add({ severity: "error", summary: "Error", detail: "Gagal memperbarui materi. Periksa kembali isian Anda.", life: 3000 });
+                    }
                 },
             });
     } else {
         // Create
-        form.post(route("admin.pembelajaran.store"), {
+        form.post('/admin/pembelajaran', {
             forceFormData: true, // Important for file uploads
             onSuccess: () => {
                 toast.add({ severity: "success", summary: "Berhasil", detail: "Materi berhasil ditambahkan!", life: 3000 });
@@ -108,7 +124,10 @@ const saveMaterial = () => {
             },
             onError: (errors) => {
                 console.error(errors);
-                toast.add({ severity: "error", summary: "Error", detail: "Gagal membuat: " + (errors.link_pdf || errors.link_video || errors.judul || errors.deskripsi_singkat || 'Periksa kembali isian Anda'), life: 3000 });
+                // If no specific field errors, show a general error toast
+                if (Object.keys(errors).length === 0) {
+                    toast.add({ severity: "error", summary: "Error", detail: "Gagal membuat materi. Periksa kembali isian Anda.", life: 3000 });
+                }
             },
         });
     }
@@ -118,6 +137,7 @@ const saveMaterial = () => {
 const editMaterial = (item: any) => {
     material.value = { ...item };
     form.reset(); // Reset form state before populating
+    form.remove_pdf = false; // Reset the flag
     showDialog.value = true;
 };
 
@@ -130,16 +150,23 @@ const confirmDelete = (item: any) => {
 // Execute DELETE
 const deleteMaterial = () => {
     // We can use the simpler delete helper here as no file is being sent
-    useForm({}).delete(route("admin.pembelajaran.destroy", material.value.id), {
+    useForm({}).delete('/admin/pembelajaran/' + material.value.id, {
         onSuccess: () => {
             toast.add({ severity: "success", summary: "Dihapus", detail: "Materi berhasil dihapus", life: 3000 });
             showDeleteDialog.value = false;
         },
         onError: (errors) => {
             console.error(errors);
-            toast.add({ severity: "error", summary: "Error", detail: "Gagal menghapus materi pembelajaran", life: 3000 });
+            toast.add({ severity: "error", summary: "Error", detail: errors.error || "Gagal menghapus materi pembelajaran.", life: 3000 });
         },
     });
+};
+
+// Request to remove the existing PDF
+const requestRemovePdf = () => {
+    form.remove_pdf = true;
+    material.value.link_pdf_url = null; // Remove from view
+    toast.add({ severity: "info", summary: "Info", detail: "File akan dihapus saat disimpan.", life: 3000 });
 };
 </script>
 
@@ -209,7 +236,9 @@ const deleteMaterial = () => {
                         v-model="material.judul" 
                         placeholder="Masukkan judul materi" 
                         class="w-full"
+                        :class="{ 'p-invalid': form.errors.judul }"
                     />
+                    <InputError :message="form.errors.judul" />
                 </div>
 
                 <!-- Deskripsi -->
@@ -220,7 +249,9 @@ const deleteMaterial = () => {
                         v-model="material.deskripsi_singkat" 
                         placeholder="Deskripsi..." 
                         class="w-full"
+                        :class="{ 'p-invalid': form.errors.deskripsi_singkat }"
                     />
+                    <InputError :message="form.errors.deskripsi_singkat" />
                 </div>
 
                 <!-- Upload File -->
@@ -231,9 +262,10 @@ const deleteMaterial = () => {
                         accept=".pdf,.ppt,.pptx" 
                         @select="onFileSelect" 
                         class="w-full"
+                        :class="{ 'p-invalid': form.errors.link_pdf }"
                     />
-
-                    <p v-if="material.link_pdf_url" class="mt-2 text-black">
+                    <InputError :message="form.errors.link_pdf" />
+                    <div v-if="material.link_pdf_url" class="mt-2 text-black flex items-center gap-3">
                         File saat ini:
                         <a 
                             :href="material.link_pdf_url" 
@@ -242,7 +274,16 @@ const deleteMaterial = () => {
                         >
                             Lihat File
                         </a>
-                    </p>
+                        <Button 
+                            icon="pi pi-times" 
+                            severity="danger"
+                            rounded
+                            text
+                            aria-label="Hapus File"
+                            v-tooltip.top="'Hapus file yang sudah ada'"
+                            @click="requestRemovePdf" 
+                        />
+                    </div>
                 </div>
 
                 <!-- YouTube Link -->
@@ -252,7 +293,9 @@ const deleteMaterial = () => {
                         v-model="material.link_video" 
                         placeholder="https://youtube.com/..." 
                         class="w-full"
+                        :class="{ 'p-invalid': form.errors.link_video }"
                     />
+                    <InputError :message="form.errors.link_video" />
                 </div>
 
             </div>

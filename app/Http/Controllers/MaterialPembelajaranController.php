@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\MaterialPembelajaran;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class MaterialPembelajaranController extends Controller
@@ -34,8 +36,8 @@ class MaterialPembelajaranController extends Controller
         $validated = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'required|string',
-            'link_pdf' => 'nullable|file|mimes:pdf,ppt,pptx|max:2048', // 2MB Max
-            'link_video' => 'nullable|url|max:255',
+            'link_pdf' => 'required_without:link_video|nullable|file|mimes:pdf,ppt,pptx|max:2048', // 2MB Max
+            'link_video' => 'required_without:link_pdf|nullable|url|max:255',
         ]);
 
         if ($request->hasFile('link_pdf')) {
@@ -44,7 +46,7 @@ class MaterialPembelajaranController extends Controller
 
         MaterialPembelajaran::create($validated);
 
-        return redirect()->route('admin.pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil ditambahkan.');
+        return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil ditambahkan.');
     }
 
     // Note: The update method uses a POST request from Inertia, so we can't use the typical route model binding for file uploads.
@@ -56,38 +58,64 @@ class MaterialPembelajaranController extends Controller
             'deskripsi_singkat' => 'required|string',
             'link_pdf' => 'nullable|file|mimes:pdf,ppt,pptx|max:2048',
             'link_video' => 'nullable|url|max:255',
+            'remove_pdf' => 'nullable|boolean', // New flag
         ]);
 
-        if ($request->hasFile('link_pdf')) {
-            // Delete old file if it exists
+        $isRemovingPdf = $request->boolean('remove_pdf');
+        $hasNewPdf = $request->hasFile('link_pdf');
+        $hasVideo = !empty($validated['link_video']);
+        $hasExistingPdf = (bool)$materialPembelajaran->link_pdf;
+        
+        // If there's no new PDF, no video link, AND we are effectively left with no PDF
+        // (either by removing it or because there wasn't one to begin with).
+        if (!$hasNewPdf && !$hasVideo && ($isRemovingPdf || !$hasExistingPdf)) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'link_pdf' => 'Setidaknya harus ada file atau tautan video.',
+                'link_video' => 'Setidaknya harus ada file atau tautan video.',
+            ]);
+        }
+        
+        if ($hasNewPdf) {
+            // If a new file is uploaded, delete the old one if it exists
             if ($materialPembelajaran->link_pdf) {
                 Storage::disk('public')->delete($materialPembelajaran->link_pdf);
             }
             // Store the new file
             $validated['link_pdf'] = $request->file('link_pdf')->store('pembelajaran/pdf', 'public');
-        }
 
+        } elseif ($isRemovingPdf && $hasExistingPdf) {
+            // If the user requested to remove the PDF and didn't upload a new one
+            Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+            $validated['link_pdf'] = null; // Ensure the path is set to null in the database
+        }
+        
         $materialPembelajaran->update($validated);
         
-        // It's a good practice to use a separate endpoint for file uploads,
-        // but for simplicity with Inertia's form helper, we handle it here.
-        // We need to use a POST request with `_method: 'PUT'` in the form data for this to work correctly with file uploads.
-        // The frontend will be adjusted to handle this.
-        return redirect()->route('admin.pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil diperbarui.');
+        return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil diperbarui.');
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(MaterialPembelajaran $materialPembelajaran)
+    public function destroy($id)
     {
-        // Delete the associated file if it exists
-        if ($materialPembelajaran->link_pdf) {
-            Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+        $materialPembelajaran = MaterialPembelajaran::findOrFail($id);
+
+        try {
+            if ($materialPembelajaran->link_pdf) {
+                Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+            }
+
+            $deleted = $materialPembelajaran->delete();
+
+            if ($deleted) {
+                return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil dihapus.');
+            }
+            
+            return redirect()->back()->withErrors(['error' => 'Gagal menghapus dari database, meskipun model ditemukan.']);
+
+        } catch (\Illuminate\Database\QueryException $e) {
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        $materialPembelajaran->delete();
-
-        return redirect()->route('admin.pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil dihapus.');
     }
 }
