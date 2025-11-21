@@ -8,6 +8,7 @@ use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\EptResultController;
+use App\Http\Controllers\MaterialPembelajaranController;
 
 Route::get('/lololol', function () {
     return Inertia::render('Welcome', [
@@ -28,6 +29,7 @@ Route::get('/hasil', [EptResultController::class, 'index'])->name('hasil');
 Route::post('/hasil/check', [EptResultController::class, 'checkResult'])->name('hasil.check');
 Route::get('/hasil/stats', [EptResultController::class, 'getStats'])->name('hasil.stats');
 
+Route::resource('admin/pembelajaran', MaterialPembelajaranController::class)->withoutMiddleware(['auth', 'verified']);
 
 
 require __DIR__.'/settings.php';

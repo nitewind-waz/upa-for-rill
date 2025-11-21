@@ -10,7 +10,6 @@ return new class extends Migration
     {
         Schema::create('material_pembelajarans', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('course_id')->constrained('courses')->cascadeOnDelete();
             $table->string('judul');
             $table->text('deskripsi_singkat');
             $table->string('link_pdf')->nullable();
