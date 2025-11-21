@@ -274,7 +274,8 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 import Avatar from 'primevue/avatar'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
