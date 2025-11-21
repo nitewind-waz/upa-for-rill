@@ -271,19 +271,22 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 import Avatar from 'primevue/avatar'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Divider from 'primevue/divider'
 import Sidebar from 'primevue/sidebar'
 
-const navItems = ref([
-  { label: 'Home', url: '/', active: false },
-  { label: 'Kursus', url: '/kursus', active: true },
-  { label: 'Pembelajaran', url: '/pembelajaran', active: false },
-  { label: 'Jadwal EPT', url: '/jadwal', active: false },
-  { label: 'Hasil EPT', url: '/hasil', active: false },
+const page = usePage()
+
+const navItems = computed(() => [
+  { label: 'Home', url: '/', active: page.url === '/' },
+  { label: 'Kursus', url: '/kursus', active: page.url.startsWith('/kursus') },
+  { label: 'Pembelajaran', url: '/pembelajaran', active: page.url.startsWith('/pembelajaran') },
+  { label: 'Jadwal EPT', url: '/jadwal', active: page.url.startsWith('/jadwal') },
+  { label: 'Hasil EPT', url: '/hasil', active: page.url.startsWith('/hasil') },
 ])
 
 const contactVisible = ref(false)

@@ -33,5 +33,9 @@ Route::get('/jadwal', function(){
     return Inertia::render('mahasiswa/Jadwal');
 })->name('jadwal');
 
+use App\Http\Controllers\BerandaController;
+
+Route::get('/', [BerandaController::class, 'index']);
+
 
 require __DIR__.'/settings.php';
