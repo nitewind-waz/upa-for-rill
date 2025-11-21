@@ -77,5 +77,12 @@ Route::get('/jadwal', function(){
     return Inertia::render('mahasiswa/Jadwal');
 })->name('jadwal');
 
+
+Route::get('/hasil', [EptResultPesertaController::class, 'index'])->name('hasil');
+Route::post('/hasil/check', [EptResultPesertaController::class, 'checkResult'])->name('hasil.check');
+Route::get('/hasil/stats', [EptResultPesertaController::class, 'getStats'])->name('hasil.stats');
+
+
+
 require __DIR__.'/settings.php';
 
