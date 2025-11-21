@@ -17,7 +17,10 @@
             </div>
             <div>
               <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
-                UPA Bahasa
+                UPA
+              </span>
+              <span class="text-xl font-bold bg-gradient-to-r from-orange-700 to-orange-900 bg-clip-text text-transparent">
+                BAHASA POLBAN
               </span>
               <p class="text-xs text-blue-600 font-medium">Politeknik Negeri Bandung</p>
             </div>
@@ -279,14 +282,12 @@ import Card from 'primevue/card'
 import Divider from 'primevue/divider'
 import Sidebar from 'primevue/sidebar'
 
-const page = usePage()
-
-const navItems = computed(() => [
-  { label: 'Home', url: '/', active: page.url === '/' },
-  { label: 'Kursus', url: '/kursus', active: page.url.startsWith('/kursus') },
-  { label: 'Pembelajaran', url: '/pembelajaran', active: page.url.startsWith('/pembelajaran') },
-  { label: 'Jadwal EPT', url: '/jadwal', active: page.url.startsWith('/jadwal') },
-  { label: 'Hasil EPT', url: '/hasil', active: page.url.startsWith('/hasil') },
+const navItems = ref([
+  { label: 'Home', url: '/', active: false },
+  { label: 'Kursus', url: '/course', active: false },
+  { label: 'Pembelajaran', url: '/pembelajaran', active: false },
+  { label: 'Jadwal EPT', url: '/jadwal', active: false },
+  { label: 'Hasil EPT', url: '/hasil', active: false },
 ])
 
 const contactVisible = ref(false)

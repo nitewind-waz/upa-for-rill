@@ -11,7 +11,7 @@
         aria-label="Open sidebar"
       />
       <h1 class="text-xl font-bold text-gray-800 hidden sm:block">
-          Dashboard
+          {{ title }}
       </h1>
     </div>
 
@@ -37,4 +37,12 @@
 import { sidebarVisible } from '@/composables/useLayout'; 
 import Button from 'primevue/button';
 import Avatar from 'primevue/avatar';
+
+const props = defineProps({
+  title: {
+    type: String,
+    default: 'Admin',
+  }
+})
+
 </script>
