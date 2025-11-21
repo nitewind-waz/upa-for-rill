@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { useForm } from '@inertiajs/vue3';
 import AdminLayout from '@/layouts/AdminLayout.vue';
 import DataTable from 'primevue/datatable';
@@ -9,12 +9,12 @@ import Dialog from 'primevue/dialog';
 import InputText from 'primevue/inputtext';
 import Textarea from 'primevue/textarea';
 import Calendar from 'primevue/calendar';
+import Paginator from 'primevue/paginator';
 import FileUpload from 'primevue/fileupload';
 import Toast from 'primevue/toast';
 import { useToast } from 'primevue/usetoast';
 
-// Props definition for the component, receiving data from the backend.
-defineProps({
+const props = defineProps({
     acaras: {
         type: Array,
         default: () => [],
@@ -37,6 +37,58 @@ const acaraToDelete = ref(null);
 // Holds the original title of the item being edited to prevent the dialog title from changing live
 const editingAcaraTitle = ref('');
 
+// --- Filtering State ---
+const filterJudul = ref('');
+const filterTanggal = ref(null);
+
+// --- Pagination State ---
+const currentPage = ref(1);
+const itemsPerPage = 5;
+
+// --- Computed Properties ---
+const filteredAcaras = computed(() => {
+    let acaras = props.acaras;
+
+    // Filter by title
+    if (filterJudul.value) {
+        acaras = acaras.filter(acara =>
+            acara.judul.toLowerCase().includes(filterJudul.value.toLowerCase())
+        );
+    }
+
+    // Filter by date
+    if (filterTanggal.value) {
+        const selectedDate = filterTanggal.value;
+        const year = selectedDate.getFullYear();
+        const month = (selectedDate.getMonth() + 1).toString().padStart(2, '0');
+        const day = selectedDate.getDate().toString().padStart(2, '0');
+        const formattedSelectedDate = `${year}-${month}-${day}`;
+
+        acaras = acaras.filter(acara => {
+            // Assuming acara.tanggal_acara is already in 'YYYY-MM-DD' format
+            return acara.tanggal_acara === formattedSelectedDate;
+        });
+    }
+
+    return acaras;
+});
+
+const paginatedAcaras = computed(() => {
+    const start = (currentPage.value - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredAcaras.value.slice(start, end);
+});
+
+// --- Functions ---
+
+/**
+ * Handles the page change event from the paginator.
+ * @param {object} event The paginator event.
+ */
+const onPage = (event) => {
+    currentPage.value = event.page + 1;
+};
+
 // Form helper for creating and editing news items.
 // Handles form state, validation, and submission.
 const form = useForm({
@@ -52,6 +104,14 @@ const deleteForm = useForm({});
 
 
 // --- Functions ---
+
+/**
+ * Clears all active filters.
+ */
+const clearFilters = () => {
+    filterJudul.value = '';
+    filterTanggal.value = null;
+};
 
 /**
  * Opens the dialog in 'create' mode.
@@ -160,43 +220,66 @@ const proceedWithDelete = () => {
 <template>
     <AdminLayout>
         <Toast />
-        <div class="card">
-            <div class="flex justify-between items-center mb-4">
-                <h1 class="text-2xl font-bold">Kelola Acara</h1>
-                <Button label="Tambah Acara" icon="pi pi-plus" @click="openNew" />
+        <div class="card p-6">
+            <!-- JUDUL PAGE -->
+            <h1 class="text-3xl font-extrabold text-gray-800 mb-6">
+                Manajemen Acara
+            </h1>
+
+            <!-- FILTER BAR -->
+            <div class="flex items-center gap-4 mb-8">
+                <InputText v-model="filterJudul" placeholder="Filter berdasarkan judul..." class="flex-1 p-3 rounded-xl shadow-sm" />
+                <Calendar v-model="filterTanggal" placeholder="Filter berdasarkan tanggal..." :showIcon="true" dateFormat="yy-mm-dd" class="p-3 rounded-xl shadow-sm" />
+                <Button label="Clear" icon="pi pi-times" class="p-button-secondary" @click="clearFilters" />
+                <Button label="Tambah Acara" icon="pi pi-plus" class="p-button-rounded p-button-primary" @click="openNew" />
             </div>
 
-            <DataTable :value="acaras" :paginator="true" :rows="5" responsiveLayout="scroll" showGridlines stripedRows rowHover
-                       tableClass="border-separate border-spacing-0 border-2 border-slate-400">
-                <Column field="judul" header="Judul" :sortable="true">
-                    <template #body="slotProps">
-                        <div class="flex justify-center items-center h-full">{{ slotProps.data.judul }}</div>
-                    </template>
-                </Column>
-                <Column header="Gambar">
-                    <template #body="slotProps">
-                        <img v-if="slotProps.data.gambar" :src="`/storage/acara/${slotProps.data.gambar}`" :alt="slotProps.data.judul" class="w-32 h-auto block mx-auto" />
-                    </template>
-                </Column>
-                <Column field="deskripsi_singkat" header="Deskripsi Singkat">
-                    <template #body="slotProps">
-                        <div class="flex justify-center items-center h-full">{{ slotProps.data.deskripsi_singkat }}</div>
-                    </template>
-                </Column>
-                <Column field="tanggal_acara" header="Tanggal Acara" :sortable="true">
-                    <template #body="slotProps">
-                        <div class="flex justify-center items-center h-full">{{ slotProps.data.tanggal_acara }}</div>
-                    </template>
-                </Column>
-                <Column header="Actions">
-                    <template #body="slotProps">
-                        <div class="flex justify-center items-center">
-                            <Button icon="pi pi-pencil" class="p-button-rounded p-button-success mr-2" @click="editAcara(slotProps.data)" />
-                            <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" @click="confirmDeleteAcara(slotProps.data)" />
+            <!-- LIST CARD STYLE -->
+            <div class="space-y-6">
+                <div v-if="filteredAcaras.length === 0" class="text-center text-gray-500 text-lg py-8">
+                    Acara tidak ditemukan.
+                </div>
+                <div
+                    v-for="item in paginatedAcaras"
+                    :key="item.id"
+                    class="p-6 rounded-3xl bg-gradient-to-r from-blue-100 to-teal-100 shadow-lg flex items-center justify-between"
+                >
+                    <!-- LEFT AREA -->
+                    <div class="flex items-center gap-6">
+                        <!-- Thumbnail -->
+                        <img
+                            v-if="item.gambar"
+                            :src="`/storage/acara/${item.gambar}`"
+                            class="w-24 h-24 rounded-2xl shadow-md object-cover"
+                        />
+
+                        <!-- Text Content -->
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-800">{{ item.judul }}</h2>
+                            <p class="text-gray-600 text-sm mt-2 max-w-md">
+                                {{ item.deskripsi_singkat }}
+                            </p>
+                            <p class="text-gray-500 text-xs mt-1">
+                                Diadakan pada: <b>{{ item.tanggal_acara }}</b>
+                            </p>
                         </div>
-                    </template>
-                </Column>
-            </DataTable>
+                    </div>
+
+                    <!-- RIGHT ACTIONS -->
+                    <div class="flex gap-3">
+                        <Button icon="pi pi-pencil" class="p-button-rounded p-button-success" @click="editAcara(item)" />
+                        <Button icon="pi pi-trash" class="p-button-rounded p-button-danger" @click="confirmDeleteAcara(item)" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGINATOR -->
+            <Paginator
+                :rows="itemsPerPage"
+                :totalRecords="filteredAcaras.length"
+                @page="onPage"
+                class="mt-8"
+            ></Paginator>
         </div>
 
         <!-- Create/Edit Dialog -->

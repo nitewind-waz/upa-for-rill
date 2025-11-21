@@ -78,6 +78,10 @@ Route::get('/jadwal', function(){
     return Inertia::render('mahasiswa/Jadwal');
 })->name('jadwal');
 
+use App\Http\Controllers\BerandaController;
+
+Route::get('/', [BerandaController::class, 'index']);
+
 
 Route::get('/hasil', [EptResultPesertaController::class, 'index'])->name('hasil');
 Route::post('/hasil/check', [EptResultPesertaController::class, 'checkResult'])->name('hasil.check');
