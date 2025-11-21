@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Course;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class CourseController extends Controller
@@ -12,68 +13,75 @@ class CourseController extends Controller
     public function index()
     {
         return Inertia::render('admin/Course/Index', [
-            'title' => 'Course',
-            'courses' => Course::all(),
+            'title' => 'Manajemen Kursus',
+            'courses' => Course::latest()->get(),
         ]);
     }
-
-    public function create()
-    {
-        return Inertia::render('admin/Course/Create', [
-            'title' => 'Tambah Kursus',
-        ]);
-    }
-
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'judul'  => 'required|string|max:50',
-            'deskripsi' => 'required|string|min:0',
-            'ketentuan' => 'required|string|min:0',
-            'jadwal' => 'required|string|min:0',
-            'jenis' => 'required|string|min:0',
+            'judul'     => 'required|string|max:50',
+            'images'    => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // Ganti jadi images
+            'deskripsi' => 'required|string',
+            'ketentuan' => 'required|string',
+            'jadwal'    => 'required|string',
+            'jenis'     => 'required|in:Gratis,Berbayar',
+            'sistem_pembelajaran' => 'required|string',
         ]);
+
+        if ($request->hasFile('images')) {
+            $path = $request->file('images')->store('courses', 'public');
+            $validated['images'] = $path;
+            // dd($path); // Cek apakah path terbentuk
+        } else {
+            // dd('File tidak terdeteksi'); // Cek jika masuk sini
+        }
 
         Course::create($validated);
 
-        return redirect()
-        ->route('admin.course.index')
-        ->with('success', 'Kursus berhasil ditambahkan!');
-    }
-
-    public function edit(Course $course)
-    {
-        return Inertia::render('admin/Course/Edit', [
-            'title' => 'Edit Kursus',
-            'course' => $course,
-        ]);
+        return redirect()->back()->with('success', 'Kursus berhasil ditambahkan!');
     }
 
     public function update(Request $request, Course $course)
     {
-        $validated = $request->validate([
-            'judul'  => 'required|string|max:50',
-            'deskripsi' => 'required|string|min:0',
-            'ketentuan' => 'required|string|min:0',
-            'jadwal' => 'required|string|min:0',
-            'jenis' => 'required|string|min:0',
-        ]);
+        $rules = [
+            'judul'     => 'required|string|max:50',
+            'deskripsi' => 'required|string',
+            'ketentuan' => 'required|string',
+            'jadwal'    => 'required|string',
+            'jenis'     => 'required|in:Gratis,Berbayar',
+            'sistem_pembelajaran' => 'required|string',
+        ];
+
+        if ($request->hasFile('images')) {
+            $rules['images'] = 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048';
+        }
+
+        $validated = $request->validate($rules);
+
+        if ($request->hasFile('images')) {
+            // Hapus gambar lama jika ada
+            if ($course->images) {
+                Storage::disk('public')->delete($course->images);
+            }
+            // Simpan gambar baru
+            $validated['images'] = $request->file('images')->store('courses', 'public');
+        }
 
         $course->update($validated);
 
-        return redirect()
-        ->route('admin.course.index')
-        ->with('success', 'Kursus berhasil diperbarui!');
+        return redirect()->back()->with('success', 'Kursus berhasil diperbarui!');
     }
 
     public function destroy(Course $course)
     {
+        if ($course->images) {
+            Storage::disk('public')->delete($course->images);
+        }
+
         $course->delete();
 
-        return redirect()
-        ->route('admin.course.index')
-        ->with('success', 'Kursus berhasil dihapus!');
+        return redirect()->back()->with('success', 'Kursus berhasil dihapus!');
     }
-
 }

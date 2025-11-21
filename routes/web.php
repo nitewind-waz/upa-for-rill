@@ -2,92 +2,112 @@
 
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-use Laravel\Fortify\Features;
-use App\Http\Controllers\Admin\AcaraController;
-use App\Http\Controllers\Admin\BeritaController;
-use App\Http\Controllers\JurusanController;
-use App\Http\Controllers\ProdiController;
-use App\Http\Controllers\KelasController;
-use App\Http\Controllers\Admin\EptResultController;
-use App\Http\Controllers\EptResultPesertaController;
+
+// --- CONTROLLERS ---
+// Public / Mahasiswa
+use App\Http\Controllers\BerandaController;
 use App\Http\Controllers\PublicCourseController;
+use App\Http\Controllers\EptResultPesertaController;
+
+// Admin
+use App\Http\Controllers\Admin\AuthController as AdminAuthController;
+use App\Http\Controllers\Admin\DashboardController; // Pastikan buat controller ini atau pakai closure
 use App\Http\Controllers\Admin\CourseController;
-use App\Http\Controllers\EptScheduleController;
+use App\Http\Controllers\Admin\BeritaController;
+use App\Http\Controllers\Admin\AcaraController;
+use App\Http\Controllers\Admin\EptResultController;
+use App\Http\Controllers\EptScheduleController; 
 
-Route::get('/', function () {
-    return Inertia::render('mahasiswa/Dashboard');
-})->name('dashboard');
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES (Mahasiswa / Visitor)
+|--------------------------------------------------------------------------
+| Bisa diakses tanpa login.
+*/
 
-// Course CRUD ADMIN
-Route::get('/admin/course', [CourseController::class, 'index'])->name('admin.course.index');
-Route::get('/admin/course/create', [CourseController::class, 'create'])->name('admin.course.create');
-Route::post('admin/course/create', [CourseController::class, 'store'])->name('admin.course.store');
-Route::get('/admin/course/{course}/edit', [CourseController::class, 'edit'])->name('admin.course.edit');
-Route::put('/admin/course/{course}', [CourseController::class, 'update'])->name('admin.course.store');
-Route::delete('/admin/course/{course}', [CourseController::class, 'destroy'])->name('admin.course.delete');
+// Beranda
+Route::get('/', [BerandaController::class, 'index'])->name('home');
 
-// EPT Result
+// Program Kursus
+Route::get('/course', [PublicCourseController::class, 'index'])->name('course.index');
 
-Route::get('/ept', [EptResultController::class, 'index'])->name('ept.index');
-Route::post('/ept', [EptResultController::class, 'store'])->name('ept.store');
-Route::post('/ept/import', [EptResultController::class, 'import'])->name('ept.import');
-
-
-Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasil');
-Route::post('/hasil/check', [EptResultMahasiswaController::class, 'checkResult'])->name('hasil.check');
-Route::post('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->name('hasil.stats');
-
-Route::get('course', [PublicCourseController::class, 'index'])->name('course.index');
-// admin
- Route::prefix('admin')->group(function () {
-
-    // halaman admin
-    Route::get('/jadwal', [EptScheduleController::class, 'adminIndex'])
-        ->name('admin.jadwal.index');
-    // tambah 
-    Route::post('/jadwal', [EptScheduleController::class, 'store'])
-        ->name('admin.jadwal.store');
-    // update 
-    Route::put('/jadwal/{id}', [EptScheduleController::class, 'update'])
-        ->name('admin.jadwal.update');
-    // hapus 
-    Route::delete('/jadwal/{id}', [EptScheduleController::class, 'destroy'])
-        ->name('admin.jadwal.delete');
-});
-
-
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::resource('berita', BeritaController::class)->parameters([
-        'berita' => 'berita',
-    ]);
-});
-
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::resource('acara', AcaraController::class)->parameters([
-        'acara' => 'acara',
-    ]);
-});
-
-Route::get('/lololol', function () {
-    return Inertia::render('Welcome', [
-        'canRegister' => Features::enabled(Features::registration()),
-    ]);
-})->name('home');
-
-Route::get('/jadwal', function(){
+// Jadwal EPT (View Mahasiswa)
+Route::get('/jadwal', function () {
     return Inertia::render('mahasiswa/Jadwal');
 })->name('jadwal');
 
-use App\Http\Controllers\BerandaController;
-
-Route::get('/', [BerandaController::class, 'index']);
-
-
-Route::get('/hasil', [EptResultPesertaController::class, 'index'])->name('hasil');
-Route::post('/hasil/check', [EptResultPesertaController::class, 'checkResult'])->name('hasil.check');
-Route::get('/hasil/stats', [EptResultPesertaController::class, 'getStats'])->name('hasil.stats');
+// Hasil EPT (Cek Nilai)
+Route::controller(EptResultPesertaController::class)->prefix('hasil')->name('hasil')->group(function () {
+    Route::get('/', 'index');              // route('hasil')
+    Route::post('/check', 'checkResult')->name('.check'); // route('hasil.check')
+    Route::get('/stats', 'getStats')->name('.stats');     // route('hasil.stats')
+});
 
 
+/*
+|--------------------------------------------------------------------------
+| ADMIN ROUTES
+|--------------------------------------------------------------------------
+| Semua route di bawah ini diawali dengan prefix '/admin'
+| dan nama route 'admin.*'
+*/
 
+Route::prefix('admin')->name('admin.')->group(function () {
+
+    // ----------------------------------------------------------
+    // 1. GUEST ADMIN (Belum Login)
+    // ----------------------------------------------------------
+    Route::middleware('guest:admin')->group(function () {
+        Route::get('/login', [AdminAuthController::class, 'showLoginForm'])->name('login');
+        Route::post('/login', [AdminAuthController::class, 'login'])->name('login.submit');
+    });
+
+    // ----------------------------------------------------------
+    // 2. PROTECTED ADMIN (Sudah Login)
+    // ----------------------------------------------------------
+    Route::middleware('auth:admin')->group(function () {
+        
+        // Logout
+        Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
+
+        // Dashboard
+        Route::get('/dashboard', function () {
+            return Inertia::render('admin/Dashboard'); // Pastikan file vue ini ada
+        })->name('dashboard');
+
+        // --- MANAJEMEN COURSE (CRUD) ---
+        // Menggunakan resource controller standard
+        Route::resource('course', CourseController::class);
+
+        // --- MANAJEMEN BERITA (CRUD) ---
+        Route::resource('berita', BeritaController::class)->parameters([
+            'berita' => 'berita',
+        ]);
+
+        // --- MANAJEMEN ACARA (CRUD) ---
+        Route::resource('acara', AcaraController::class)->parameters([
+            'acara' => 'acara',
+        ]);
+
+        // --- MANAJEMEN JADWAL EPT ---
+        // Karena controller jadwal menyatu/custom method, kita definisikan manual
+        Route::controller(EptScheduleController::class)->prefix('jadwal')->name('jadwal.')->group(function () {
+            Route::get('/', 'adminIndex')->name('index');   // admin.jadwal.index
+            Route::post('/', 'store')->name('store');       // admin.jadwal.store
+            Route::put('/{id}', 'update')->name('update');  // admin.jadwal.update
+            Route::delete('/{id}', 'destroy')->name('delete'); // admin.jadwal.delete
+        });
+
+        // --- MANAJEMEN HASIL EPT (RESULT) ---
+        Route::controller(EptResultController::class)->prefix('ept')->name('ept.')->group(function () {
+            Route::get('/', 'index')->name('index');    // admin.ept.index
+            Route::post('/', 'store')->name('store');   // admin.ept.store
+            Route::post('/import', 'import')->name('import'); // admin.ept.import
+        });
+
+    });
+
+});
+
+// Other require (Fortify/Jetstream jika ada)
 require __DIR__.'/settings.php';
-

@@ -1,316 +1,150 @@
+<script setup>
+import { ref } from 'vue'
+import { usePage } from '@inertiajs/vue3'
+import Button from 'primevue/button'
+import Sidebar from 'primevue/sidebar'
+
+const page = usePage()
+
+const navItems = ref([
+  { label: 'Home', url: '/' },
+  { label: 'Kursus', url: '/course' },
+  { label: 'Pembelajaran', url: '/pembelajaran' },
+  { label: 'Jadwal EPT', url: '/jadwal' },
+  { label: 'Hasil EPT', url: '/hasil' },
+])
+
+const contactVisible = ref(false)
+const mobileMenuVisible = ref(false)
+
+const handleImageError = (e) => { 
+  e.target.src = 'https://via.placeholder.com/150?text=LOGO' 
+}
+
+const isActive = (url) => {
+  if (url === '/') {
+    return page.url === '/'
+  }
+  return page.url.startsWith(url)
+}
+</script>
+
 <template>
-  <div class="min-h-screen flex flex-col bg-gradient-to-br from-blue-50 via-white to-blue-50">
-    <!-- Header dengan Glassmorphism Effect -->
-    <header class="sticky top-0 z-50 backdrop-blur-lg bg-white/80 border-b border-blue-100 shadow-sm">
-      <nav class="container mx-auto px-6 py-4">
+  <div class="min-h-screen flex flex-col bg-slate-50 relative overflow-x-hidden font-sans">
+    
+    <div class="fixed inset-0 z-0 pointer-events-none overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(#94a3b8_1px,transparent_1px)] [background-size:30px_30px] opacity-[0.2]"></div>
+        <div class="absolute top-[-10%] left-[-10%] w-[600px] h-[600px] bg-blue-200/40 rounded-full blur-[120px] animate-pulse"></div>
+        <div class="absolute bottom-[-5%] right-[-5%] w-[500px] h-[500px] bg-orange-100/50 rounded-full blur-[100px] animate-pulse delay-1000"></div>
+        <div class="absolute top-[30%] right-[-15%] w-[400px] h-[400px] bg-indigo-200/30 rounded-full blur-[120px] animate-pulse delay-700"></div>
+        <div class="absolute top-20 left-[-50px] w-96 h-96 border border-slate-200 rounded-full opacity-60"></div>
+        <div class="absolute bottom-40 right-10 w-32 h-32 border-2 border-blue-100 rounded-full opacity-50 border-dashed"></div>
+    </div>
+
+    <header class="sticky top-0 z-50 bg-blue-600/95 backdrop-blur-md border-b border-blue-500 shadow-lg transition-all duration-300">
+      <nav class="container mx-auto px-6 py-3 relative">
+        
         <div class="flex justify-between items-center">
-          <!-- Logo & Brand -->
-          <div class="flex items-center gap-3 group cursor-pointer">
-            <div class="relative">
-              <Avatar 
-                icon="pi pi-comments" 
-                size="large" 
-                shape="circle"
-                class="bg-gradient-to-br from-blue-600 to-blue-800 text-white shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-105" 
+          
+          <div class="flex items-center gap-3 group cursor-pointer z-20" @click="$inertia.visit('/')">
+            <div class="relative transition-transform duration-300 group-hover:scale-105">
+              <img 
+                src="/images/logo-polban.png" 
+                alt="Logo Polban" 
+                class="h-10 w-auto object-contain filter drop-shadow-sm"
+                @error="handleImageError"
               />
-              <div class="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
             </div>
-            <div>
-              <span class="text-xl font-bold bg-gradient-to-r from-blue-700 to-blue-900 bg-clip-text text-transparent">
-                UPA
-              </span>
-              <span class="text-xl font-bold bg-gradient-to-r from-orange-700 to-orange-900 bg-clip-text text-transparent">
-                BAHASA POLBAN
-              </span>
-              <p class="text-xs text-blue-600 font-medium">Politeknik Negeri Bandung</p>
+            <div class="flex flex-col">
+              <div class="flex items-baseline gap-1 text-xl font-bold tracking-wide">
+                <span class="text-white drop-shadow-sm">UPA</span>
+                <span class="text-orange-300 drop-shadow-sm">BAHASA</span>
+              </div>
+              <span class="text-[10px] text-blue-100 font-medium uppercase tracking-widest">Politeknik Negeri Bandung</span>
             </div>
           </div>
 
-          <!-- Navigation Menu -->
-          <div class="hidden md:flex items-center gap-2">
+          <div class="hidden md:flex items-center gap-1 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
             <a
               v-for="item in navItems"
               :key="item.label"
               :href="item.url"
-              class="px-5 py-2.5 rounded-xl font-medium transition-all duration-300 relative overflow-hidden group"
-              :class="item.active
-                ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white shadow-lg shadow-blue-200'
-                : 'text-gray-700 hover:bg-blue-50'"
+              class="px-4 py-2 rounded-lg text-sm font-medium transition-all duration-300 relative group overflow-hidden whitespace-nowrap"
+              :class="isActive(item.url)
+                ? 'text-white bg-white/10 shadow-sm font-semibold' /* ACTIVE: Sama kayak hover (transparan putih) */
+                : 'text-blue-100 hover:text-white hover:bg-white/10'"
             >
-              <span class="relative z-10">{{ item.label }}</span>
+              {{ item.label }}
+              
               <div 
-                v-if="!item.active"
-                class="absolute inset-0 bg-gradient-to-r from-blue-600 to-blue-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                v-if="isActive(item.url)" 
+                class="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-0.5 bg-orange-400 shadow-[0_0_8px_rgba(251,146,60,0.8)] rounded-full"
               ></div>
-              <span 
-                v-if="!item.active"
-                class="absolute inset-0 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10"
-              >
-                {{ item.label }}
-              </span>
             </a>
           </div>
 
-          <!-- Mobile Menu Button -->
-          <Button 
-            icon="pi pi-bars" 
-            class="md:hidden" 
-            text 
-            rounded 
-            @click="mobileMenuVisible = true"
-          />
+          <div class="md:hidden z-20">
+             <Button 
+              icon="pi pi-bars" 
+              class="!text-white hover:!bg-white/10" 
+              text rounded 
+              @click="mobileMenuVisible = true"
+            />
+          </div>
+
         </div>
       </nav>
     </header>
 
-    <!-- Main Content -->
-    <main class="flex-1 container mx-auto px-6 py-8">
+    <main class="flex-1 relative z-10">
       <slot />
     </main>
 
-    <!-- Floating Action Button dengan Tooltip -->
     <div class="fixed bottom-8 right-8 z-40">
       <div class="relative group">
         <Button
-          icon="pi pi-comments"
-          rounded
-          size="large"
-          severity="info"
-          class="shadow-2xl shadow-blue-300 hover:shadow-3xl hover:scale-110 transition-all duration-300 bg-gradient-to-br from-blue-600 to-blue-800 border-none w-16 h-16"
+          icon="pi pi-comments" rounded size="large"
+          class="!bg-blue-600 !border-blue-500 shadow-xl hover:scale-110 transition-all duration-300 !w-14 !h-14"
           @mouseenter="contactVisible = true"
           @mouseleave="contactVisible = false"
         />
-        
-        <!-- Contact Card -->
-        <Transition
-          enter-active-class="transition ease-out duration-200"
-          enter-from-class="opacity-0 translate-y-4"
-          enter-to-class="opacity-100 translate-y-0"
-          leave-active-class="transition ease-in duration-150"
-          leave-from-class="opacity-100 translate-y-0"
-          leave-to-class="opacity-0 translate-y-4"
-        >
-          <Card 
-            v-if="contactVisible"
-            class="absolute bottom-20 right-0 w-80 shadow-2xl"
-            @mouseenter="contactVisible = true"
-            @mouseleave="contactVisible = false"
-          >
-            <template #header>
-              <div class="bg-gradient-to-r from-blue-600 to-blue-800 p-4 text-white">
-                <h3 class="text-lg font-bold flex items-center gap-2">
-                  <i class="pi pi-phone"></i>
-                  Hubungi Kami
-                </h3>
-                <p class="text-sm text-blue-100 mt-1">Kami siap membantu Anda</p>
-              </div>
-            </template>
-            <template #content>
-              <div class="space-y-4">
-                <a 
-                  href="mailto:upa.bahasa@polban.ac.id"
-                  class="flex items-center gap-3 p-3 rounded-lg hover:bg-blue-50 transition-colors group"
-                >
-                  <div class="bg-blue-100 p-2 rounded-lg group-hover:bg-blue-200 transition-colors">
-                    <i class="pi pi-envelope text-blue-700 text-lg"></i>
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-xs text-gray-500 font-medium">Email</p>
-                    <p class="text-sm text-gray-800 font-semibold">upa.bahasa@polban.ac.id</p>
-                  </div>
-                </a>
-
-                <a 
-                  href="https://wa.me/6281234567890"
-                  target="_blank"
-                  class="flex items-center gap-3 p-3 rounded-lg hover:bg-green-50 transition-colors group"
-                >
-                  <div class="bg-green-100 p-2 rounded-lg group-hover:bg-green-200 transition-colors">
-                    <i class="pi pi-whatsapp text-green-600 text-lg"></i>
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-xs text-gray-500 font-medium">WhatsApp</p>
-                    <p class="text-sm text-gray-800 font-semibold">+62 812 3456 7890</p>
-                  </div>
-                </a>
-
-                <a 
-                  href="https://instagram.com/upabahasa_polban"
-                  target="_blank"
-                  class="flex items-center gap-3 p-3 rounded-lg hover:bg-pink-50 transition-colors group"
-                >
-                  <div class="bg-pink-100 p-2 rounded-lg group-hover:bg-pink-200 transition-colors">
-                    <i class="pi pi-instagram text-pink-600 text-lg"></i>
-                  </div>
-                  <div class="flex-1">
-                    <p class="text-xs text-gray-500 font-medium">Instagram</p>
-                    <p class="text-sm text-gray-800 font-semibold">@upabahasa_polban</p>
-                  </div>
-                </a>
-              </div>
-            </template>
-          </Card>
-        </Transition>
       </div>
     </div>
 
-    <!-- Modern Footer -->
-    <footer class="bg-gradient-to-br from-blue-900 via-blue-800 to-blue-900 text-white py-12 mt-16 relative overflow-hidden">
-      <!-- Background Pattern -->
-      <div class="absolute inset-0 opacity-10">
-        <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-        <div class="absolute bottom-0 right-0 w-96 h-96 bg-blue-300 rounded-full blur-3xl"></div>
-      </div>
-
-      <div class="container mx-auto px-6 relative z-10">
-        <div class="grid md:grid-cols-3 gap-8">
-          <!-- About Section -->
-          <div class="space-y-4">
-            <div class="flex items-center gap-3">
-              <Avatar 
-                icon="pi pi-comments" 
-                size="large" 
-                shape="circle"
-                class="bg-white text-blue-800 shadow-lg" 
-              />
-              <div>
-                <h3 class="text-xl font-bold">UPA Bahasa</h3>
-                <p class="text-blue-200 text-sm">POLBAN</p>
-              </div>
-            </div>
-            <p class="text-blue-100 text-sm leading-relaxed">
-              Unit Pelaksana Administrasi Bahasa Politeknik Negeri Bandung, 
-              mendukung pengembangan kemampuan bahasa mahasiswa.
-            </p>
-          </div>
-
-          <!-- Quick Links -->
-          <div class="space-y-4">
-            <h4 class="text-lg font-bold">Quick Links</h4>
-            <div class="grid grid-cols-2 gap-2">
-              <a 
-                v-for="item in navItems" 
-                :key="item.label"
-                :href="item.url"
-                class="text-blue-100 hover:text-white transition-colors text-sm hover:translate-x-1 transform duration-200 flex items-center gap-2"
-              >
-                <i class="pi pi-angle-right text-xs"></i>
-                {{ item.label }}
-              </a>
-            </div>
-          </div>
-
-          <!-- Contact Info -->
-          <div class="space-y-4">
-            <h4 class="text-lg font-bold">Kontak & Lokasi</h4>
-            <div class="space-y-3 text-sm">
-              <div class="flex items-start gap-3">
-                <i class="pi pi-map-marker text-blue-300 mt-1"></i>
-                <p class="text-blue-100">
-                  Jl. Gegerkalong Hilir, Ciwaruga<br/>
-                  Bandung, Jawa Barat
-                </p>
-              </div>
-              <div class="flex items-center gap-3">
-                <i class="pi pi-envelope text-blue-300"></i>
-                <a href="mailto:upa.bahasa@polban.ac.id" class="text-blue-100 hover:text-white transition-colors">
-                  upa.bahasa@polban.ac.id
-                </a>
-              </div>
-              <div class="flex items-center gap-3">
-                <i class="pi pi-instagram text-blue-300"></i>
-                <a href="https://instagram.com/upabahasa_polban" target="_blank" class="text-blue-100 hover:text-white transition-colors">
-                  @upabahasa_polban
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Copyright -->
-        <Divider class="my-6 border-blue-700" />
-        <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-blue-200">
-          <p>© 2025 UPA Bahasa Politeknik Negeri Bandung. All rights reserved.</p>
-          <div class="flex gap-4">
-            <a href="#" class="hover:text-white transition-colors">Privacy Policy</a>
-            <a href="#" class="hover:text-white transition-colors">Terms of Service</a>
-          </div>
-        </div>
-      </div>
+    <footer class="bg-slate-900 text-white py-12 mt-auto border-t border-slate-800 relative z-10">
+       <div class="container mx-auto px-6 relative">
+          <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+          <p class="text-center text-slate-400 text-sm relative z-10">© 2025 UPA Bahasa Politeknik Negeri Bandung.</p>
+       </div>
     </footer>
 
-    <!-- Mobile Menu Sidebar -->
-    <Sidebar v-model:visible="mobileMenuVisible" position="right">
+    <Sidebar v-model:visible="mobileMenuVisible" position="right" class="!bg-white">
       <template #header>
-        <div class="flex items-center gap-3">
-          <Avatar 
-            icon="pi pi-comments" 
-            size="large" 
-            class="bg-gradient-to-br from-blue-600 to-blue-800 text-white" 
-          />
-          <div>
-            <h3 class="font-bold text-blue-900">UPA Bahasa</h3>
-            <p class="text-xs text-blue-600">POLBAN</p>
-          </div>
+        <div class="flex items-center gap-3 border-b border-gray-100 pb-4 w-full">
+           <img src="/images/logo-polban.png" alt="Logo" class="h-8 w-auto" />
+           <div class="flex flex-col">
+              <div class="font-bold text-lg">
+                 <span class="text-blue-700">UPA</span> 
+                 <span class="text-orange-500">BAHASA</span>
+              </div>
+           </div>
         </div>
       </template>
 
-      <div class="space-y-2">
+      <div class="flex flex-col gap-2 mt-2">
         <a
           v-for="item in navItems"
           :key="item.label"
           :href="item.url"
-          class="block px-4 py-3 rounded-lg font-medium transition-all"
-          :class="item.active
-            ? 'bg-gradient-to-r from-blue-600 to-blue-700 text-white'
-            : 'text-gray-700 hover:bg-blue-50'"
-          @click="mobileMenuVisible = false"
+          class="px-4 py-3 rounded-lg font-medium text-sm transition-all flex items-center justify-between"
+          :class="isActive(item.url)
+            ? 'bg-blue-50 text-blue-700 border-l-4 border-blue-600'
+            : 'text-gray-600 hover:bg-gray-50 hover:text-blue-600'"
         >
           {{ item.label }}
+          <i v-if="isActive(item.url)" class="pi pi-check text-xs"></i>
         </a>
       </div>
     </Sidebar>
   </div>
 </template>
-
-<script setup>
-import { ref, computed } from 'vue'
-import { usePage } from '@inertiajs/vue3'
-import Avatar from 'primevue/avatar'
-import Button from 'primevue/button'
-import Card from 'primevue/card'
-import Divider from 'primevue/divider'
-import Sidebar from 'primevue/sidebar'
-
-const navItems = ref([
-  { label: 'Home', url: '/', active: false },
-  { label: 'Kursus', url: '/course', active: false },
-  { label: 'Pembelajaran', url: '/pembelajaran', active: false },
-  { label: 'Jadwal EPT', url: '/jadwal', active: false },
-  { label: 'Hasil EPT', url: '/hasil', active: false },
-])
-
-const contactVisible = ref(false)
-const mobileMenuVisible = ref(false)
-</script>
-
-<style scoped>
-/* Custom scrollbar untuk sidebar */
-:deep(.p-sidebar-content) {
-  scrollbar-width: thin;
-  scrollbar-color: #3b82f6 #e5e7eb;
-}
-
-:deep(.p-sidebar-content::-webkit-scrollbar) {
-  width: 6px;
-}
-
-:deep(.p-sidebar-content::-webkit-scrollbar-track) {
-  background: #e5e7eb;
-}
-
-:deep(.p-sidebar-content::-webkit-scrollbar-thumb) {
-  background: #3b82f6;
-  border-radius: 3px;
-}
-</style>

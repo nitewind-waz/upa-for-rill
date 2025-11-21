@@ -13,6 +13,7 @@ class Course extends Model
 
     protected $fillable = [
         'judul',
+        'images',
         'deskripsi',
         'ketentuan',
         'sistem_pembelajaran',

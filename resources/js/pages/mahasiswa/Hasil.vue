@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 import Layout from '@/layouts/AppLayout.vue'
+import { Head } from '@inertiajs/vue3'
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
 import MultiSelect from 'primevue/multiselect'
@@ -67,308 +68,286 @@ const loadTabData = (tab) => {
   router.visit(`/hasil?tab=${tab}`, { preserveState: true, preserveScroll: true, replace: true })
 }
 
-// === NEW: Bar Chart Options biar tinggi dan full ===
+// === Chart Options ===
 const barChartOptions = {
   maintainAspectRatio: false,
   responsive: true,
   plugins: {
     legend: {
       position: 'bottom',
-      labels: { color: '#333', padding: 20 }
+      labels: { color: '#64748b', padding: 20, font: { family: 'ui-sans-serif' } }
     }
   },
   scales: {
     x: {
-      ticks: { color: '#333' },
+      ticks: { color: '#64748b' },
       grid: { display: false }
     },
     y: {
-      ticks: { color: '#333' },
+      ticks: { color: '#64748b' },
+      grid: { color: '#e2e8f0', borderDash: [5, 5] },
       beginAtZero: true
     }
   }
 }
 </script>
 
-
 <template>
-  <div class="bg-white min-h-screen">
-    <Layout :show-hero="true">
-      <section class="py-20 text-center">
-        <h1 class="text-4xl md:text-5xl font-bold text-blue-800 mb-4">
-          Hasil EPT
-        </h1>
-        <p class="text-lg text-blue-900 mb-10">
-          Lihat hasil English Proficiency Test (EPT) kamu di sini.
-        </p>
-      </section>
+  <Head title="Hasil EPT" />
 
-      <!-- Tabs -->
-      <section class="container mx-auto pb-12 px-6 max-w-2xl">
-        <div class="flex justify-center bg-gray-200 rounded-lg p-1.5 gap-1">
-          <Button
-            v-for="tab in ['Jurusan','Prodi','Kelas','Individu']"
-            :key="tab"
-            :label="tab"
-            @click="() => loadTabData(tab)"
-            unstyled
-            :class="[
-              'w-full font-semibold transition-all duration-200 py-2',
-              activeTab === tab
-                ? 'bg-orange-500 text-white shadow-md'
-                : 'bg-blue-600 text-white hover:bg-blue-500'
-            ]"
-            style="border-radius:6px; border:none;"
-          />
-        </div>
-      </section>
+  <Layout>
+    <div class="min-h-screen flex flex-col bg-slate-50">
 
-      <!-- Konten -->
-      <section class="container mx-auto px-6 max-w-6xl text-center py-10">
-        
-        <!-- ==================== TAB JURUSAN ==================== -->
-        <div v-if="activeTab === 'Jurusan'">
-          <h2 class="text-2xl font-bold text-blue-800 mb-4">Pilih Jurusan</h2>
-          <div class="flex flex-col items-center gap-2 w-full max-w-xl mx-auto">
-            <MultiSelect
-              v-model="selectedJurusan"
-              :options="props.jurusan"
-              optionLabel="nama_jurusan"
-              optionValue="id"
-              placeholder="Pilih satu atau lebih jurusan"
-              class="w-full multiselect-custom"
-              :showSelectAll="false"
-            />
-            <Button
-              v-if="selectedJurusan.length"
-              label="Reset Pilihan"
-              severity="danger"
-              class="mt-4 w-full"
-              @click="selectedJurusan = []"
-            />
-          </div>
-        </div>
+        <section class="relative w-full h-[350px] flex items-center justify-center overflow-hidden shadow-md">
+            <div 
+                class="absolute inset-0 w-full h-full bg-cover bg-center z-0 animate-[pulse_15s_ease-in-out_infinite]"
+                style="background-image: url('/banner-upa.jpeg');" 
+            ></div>
+            <div class="absolute inset-0 bg-slate-900/50 z-10"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50 z-20"></div>
 
-        <!-- ==================== TAB PRODI ==================== -->
-        <div v-else-if="activeTab === 'Prodi'">
-          <h2 class="text-2xl font-bold text-blue-800 mb-4">Pilih Prodi</h2>
-          <div class="flex flex-col items-center gap-2 w-full max-w-xl mx-auto">
-            <MultiSelect
-              v-model="selectedProdi"
-              :options="props.prodi"
-              optionLabel="nama_prodi"
-              optionValue="id"
-              placeholder="Pilih satu atau lebih prodi"
-              class="w-full multiselect-custom"
-              :showSelectAll="false"
-            />
-            <Button
-              v-if="selectedProdi.length"
-              label="Reset Pilihan"
-              severity="danger"
-              class="mt-4 w-full"
-              @click="selectedProdi = []"
-            />
-          </div>
-        </div>
-
-        <!-- ==================== TAB KELAS ==================== -->
-        <div v-else-if="activeTab === 'Kelas'">
-          <h2 class="text-2xl font-bold text-blue-800 mb-4">Pilih Kelas</h2>
-          <div class="flex flex-col items-center gap-2 w-full max-w-xl mx-auto">
-            <MultiSelect
-              v-model="selectedKelas"
-              :options="props.kelas"
-              optionLabel="nama_kelas"
-              optionValue="id"
-              placeholder="Pilih satu atau lebih kelas"
-              class="w-full multiselect-custom"
-              :showSelectAll="false"
-            />
-            <Button
-              v-if="selectedKelas.length"
-              label="Reset Pilihan"
-              severity="danger"
-              class="mt-4 w-full"
-              @click="selectedKelas = []"
-            />
-          </div>
-        </div>
-
-        <!-- Hasil Chart & Statistik -->
-        <div v-if="props.stats && props.stats.chart.datasets.length > 0" class="mt-12 flex flex-col gap-8">
-          
-          <!-- ROW 1: Statistik Numerik -->
-          <div>
-              <h3 class="text-xl font-bold text-blue-800 mb-4 text-left">Statistik Total Skor</h3>
-              <div v-if="props.stats.chart.datasets.length <= 2" class="space-y-4">
-                  <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-5 border rounded-xl shadow-lg bg-gray-50 text-left">
-                      <h4 class="font-bold text-lg text-blue-700 mb-3">{{ dataset.label }}</h4>
-                      <div class="space-y-2 text-sm">
-                          <div class="flex justify-between">
-                              <p class="font-medium text-gray-600">Skor Tertinggi:</p>
-                              <p class="font-semibold text-blue-600">{{ dataset.data[0] }}</p>
-                          </div>
-                          <div class="flex justify-between">
-                              <p class="font-medium text-gray-600">Skor Terendah:</p>
-                              <p class="font-semibold text-red-600">{{ dataset.data[1] }}</p>
-                          </div>
-                          <div class="flex justify-between">
-                              <p class="font-medium text-gray-600">Rata-rata Skor:</p>
-                              <p class="font-semibold text-green-600">{{ dataset.data[2] }}</p>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-              <div v-else :class="['grid gap-3', 'grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4']">
-                  <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" class="p-3 border rounded-lg shadow-md bg-gray-50 text-left">
-                      <h4 class="font-semibold text-base text-blue-700 mb-2">{{ dataset.label }}</h4>
-                      <div class="space-y-1 text-xs">
-                          <div class="flex justify-between items-center">
-                              <p class="font-medium text-gray-600">Tertinggi:</p>
-                              <p class="font-bold text-blue-600">{{ dataset.data[0] }}</p>
-                          </div>
-                          <div class="flex justify-between items-center">
-                              <p class="font-medium text-gray-600">Terendah:</p>
-                              <p class="font-bold text-red-600">{{ dataset.data[1] }}</p>
-                          </div>
-                          <div class="flex justify-between items-center">
-                              <p class="font-medium text-gray-600">Rata-rata:</p>
-                              <p class="font-bold text-green-600">{{ dataset.data[2] }}</p>
-                          </div>
-                      </div>
-                  </div>
-              </div>
-          </div>
-
-          <!-- ROW 2: Charts -->
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <!-- Bar Chart -->
-              <div class="p-6 border rounded-xl shadow-lg bg-gray-50">
-                <h3 class="text-xl font-bold text-blue-800 mb-5 text-left">Grafik Perbandingan Total Skor</h3>
-                <Chart 
-                  type="bar" 
-                  :data="props.stats.chart" 
-                  :options="barChartOptions"
-                  style="height: 450px;"  
-                />
-              </div>
-
-              <!-- Pie Chart -->
-              <div v-if="props.stats.levelPieChart" class="p-6 border rounded-xl shadow-lg bg-gray-50">
-                  <h3 class="text-xl font-bold text-blue-800 mb-5 text-left">Distribusi Level Mahasiswa</h3>
-                  <Chart type="pie" :data="props.stats.levelPieChart" />
-              </div>
-          </div>
-        </div>
-        <div v-else-if="['Jurusan', 'Prodi', 'Kelas'].includes(activeTab) && (selectedJurusan.length > 0 || selectedProdi.length > 0 || selectedKelas.length > 0) && !props.stats?.chart.datasets.length" class="mt-10">
-            <p class="text-gray-500">Tidak ada data statistik untuk ditampilkan pada pilihan saat ini.</p>
-        </div>
-
-
-        <!-- ==================== TAB INDIVIDU ==================== -->
-        <div v-else-if="activeTab === 'Individu'">
-          <h2 class="text-2xl font-bold text-blue-800 mb-6">Cek Hasil EPT Individu</h2>
-
-          <div class="max-w-md mx-auto text-left bg-white border border-gray-300 rounded-xl shadow-lg p-6">
-            <div class="mb-4">
-              <label for="nim" class="block text-gray-700 font-semibold mb-2">NIM / NIK</label>
-              <input
-                id="nim"
-                v-model="form.nim"
-                type="text"
-                placeholder="Masukkan NIM / NIK"
-                class="w-full border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div class="relative z-30 container mx-auto px-6 text-center pt-8">
+                <span class="inline-block py-1 px-3 rounded-full bg-blue-600/30 border border-blue-400/50 text-blue-50 text-xs font-bold mb-4 backdrop-blur-md uppercase tracking-widest">
+                    Laporan Akademik
+                </span>
+                <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-3">
+                    Hasil Tes EPT
+                </h1>
+                <p class="text-white/90 text-lg max-w-2xl mx-auto font-light leading-relaxed drop-shadow-md">
+                    Pantau perkembangan skor EPT Anda atau lihat statistik pencapaian berdasarkan jurusan dan prodi.
+                </p>
             </div>
+        </section>
 
-            <div class="mb-6">
-              <label for="password" class="block text-gray-700 font-semibold mb-2">Password</label>
-              <input
-                id="password"
-                v-model="form.password"
-                type="password"
-                placeholder="Masukkan Password"
-                class="w-full border border-gray-300 text-gray-800 placeholder-gray-400 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+        <section class="relative pb-20 -mt-10 z-30">
+            <div class="container mx-auto px-6">
+                
+                <div class="flex justify-center mb-12">
+                    <div class="bg-blue-50 p-1.5 rounded-xl shadow-lg border border-blue-100 inline-flex flex-wrap justify-center gap-1">
+                        <button
+                            v-for="tab in ['Jurusan','Prodi','Kelas','Individu']"
+                            :key="tab"
+                            @click="loadTabData(tab)"
+                            class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300"
+                            :class="activeTab === tab 
+                                ? 'bg-blue-600 text-white shadow-md transform scale-105' 
+                                : 'text-slate-500 hover:text-blue-600 hover:bg-blue-100'"
+                        >
+                            {{ tab }}
+                        </button>
+                    </div>
+                </div>
+
+                <transition name="fade" mode="out-in">
+                    <div v-if="['Jurusan', 'Prodi', 'Kelas'].includes(activeTab)" class="space-y-10">
+                        
+                        <div class="max-w-3xl mx-auto bg-blue-50 rounded-2xl shadow-lg border border-blue-100 p-8 text-center">
+                            <h2 class="text-xl font-bold text-slate-800 mb-2">Filter Data {{ activeTab }}</h2>
+                            <p class="text-slate-500 text-sm mb-6">Pilih satu atau lebih {{ activeTab.toLowerCase() }} untuk melihat statistik.</p>
+                            
+                            <div class="max-w-xl mx-auto">
+                                <div v-if="activeTab === 'Jurusan'">
+                                    <MultiSelect v-model="selectedJurusan" :options="props.jurusan" optionLabel="nama_jurusan" optionValue="id" placeholder="Pilih Jurusan..." class="w-full multiselect-custom" :showSelectAll="false" display="chip" />
+                                    <Button v-if="selectedJurusan.length" label="Reset Filter" icon="pi pi-times" severity="secondary" text class="mt-2 !text-red-500" @click="selectedJurusan = []" />
+                                </div>
+
+                                <div v-else-if="activeTab === 'Prodi'">
+                                    <MultiSelect v-model="selectedProdi" :options="props.prodi" optionLabel="nama_prodi" optionValue="id" placeholder="Pilih Prodi..." class="w-full multiselect-custom" :showSelectAll="false" display="chip" />
+                                    <Button v-if="selectedProdi.length" label="Reset Filter" icon="pi pi-times" severity="secondary" text class="mt-2 !text-red-500" @click="selectedProdi = []" />
+                                </div>
+
+                                <div v-else-if="activeTab === 'Kelas'">
+                                    <MultiSelect v-model="selectedKelas" :options="props.kelas" optionLabel="nama_kelas" optionValue="id" placeholder="Pilih Kelas..." class="w-full multiselect-custom" :showSelectAll="false" display="chip" />
+                                    <Button v-if="selectedKelas.length" label="Reset Filter" icon="pi pi-times" severity="secondary" text class="mt-2 !text-red-500" @click="selectedKelas = []" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="props.stats && props.stats.chart.datasets.length > 0" class="space-y-8">
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div v-for="(dataset, index) in props.stats.chart.datasets" :key="index" 
+                                    class="bg-white rounded-xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-shadow hover:border-blue-300 group">
+                                    <h4 class="font-bold text-slate-800 mb-3 border-b border-slate-100 pb-2 truncate" :title="dataset.label">
+                                        {{ dataset.label }}
+                                    </h4>
+                                    <div class="space-y-2 text-sm">
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500">Tertinggi</span>
+                                            <span class="font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{{ dataset.data[0] }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500">Terendah</span>
+                                            <span class="font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded">{{ dataset.data[1] }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center">
+                                            <span class="text-slate-500">Rata-rata</span>
+                                            <span class="font-bold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded">{{ dataset.data[2] }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                                <div class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h3 class="font-bold text-slate-800 text-lg">Perbandingan Skor</h3>
+                                        <span class="bg-blue-100 text-blue-700 text-xs px-3 py-1 rounded-full font-bold">Grafik Batang</span>
+                                    </div>
+                                    <div class="h-[400px]">
+                                        <Chart type="bar" :data="props.stats.chart" :options="barChartOptions" class="h-full" />
+                                    </div>
+                                </div>
+
+                                <div v-if="props.stats.levelPieChart" class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6">
+                                    <div class="flex items-center justify-between mb-6">
+                                        <h3 class="font-bold text-slate-800 text-lg">Distribusi Level</h3>
+                                        <span class="bg-orange-100 text-orange-700 text-xs px-3 py-1 rounded-full font-bold">Diagram Lingkaran</span>
+                                    </div>
+                                    <div class="h-[400px] flex justify-center">
+                                        <Chart type="pie" :data="props.stats.levelPieChart" class="h-full" />
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div v-else-if="(selectedJurusan.length > 0 || selectedProdi.length > 0 || selectedKelas.length > 0) && !props.stats?.chart.datasets.length" 
+                             class="text-center py-12 bg-white rounded-xl border border-dashed border-slate-300">
+                            <i class="pi pi-chart-bar text-slate-300 text-4xl mb-3"></i>
+                            <p class="text-slate-500">Data statistik belum tersedia untuk pilihan ini.</p>
+                        </div>
+
+                    </div>
+
+                    <div v-else-if="activeTab === 'Individu'" class="space-y-10">
+                        
+                        <div class="max-w-md mx-auto bg-blue-50 rounded-2xl shadow-xl border border-blue-100 p-8">
+                            <div class="text-center mb-6">
+                                <div class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 text-blue-600 mb-3">
+                                    <i class="pi pi-user text-xl"></i>
+                                </div>
+                                <h2 class="text-xl font-bold text-slate-800">Cek Hasil Pribadi</h2>
+                                <p class="text-slate-500 text-xs">Masukkan kredensial untuk melihat riwayat tes.</p>
+                            </div>
+
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">NIM / NIK</label>
+                                    <input v-model="form.nim" type="text" placeholder="Nomor Induk Mahasiswa" 
+                                        class="w-full border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Password</label>
+                                    <input v-model="form.password" type="password" placeholder="Kata sandi akun" 
+                                        class="w-full border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                </div>
+                                
+                                <div v-if="errors.individu" class="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">
+                                    <i class="pi pi-exclamation-circle"></i> {{ errors.individu }}
+                                </div>
+
+                                <Button label="Lihat Hasil Saya" class="w-full !bg-blue-600 !border-blue-600 hover:!bg-blue-700 mt-2" 
+                                    @click="handleCheckResult" :loading="form.processing" />
+                            </div>
+                        </div>
+
+                        <div v-if="props.mahasiswa" class="animate-fade-in-up">
+                            <div class="flex items-center justify-center gap-3 mb-8">
+                                <div class="h-px w-12 bg-slate-300"></div>
+                                <h3 class="text-xl font-bold text-slate-700">
+                                    Riwayat Tes: <span class="text-blue-600">{{ props.mahasiswa.nama }}</span>
+                                </h3>
+                                <div class="h-px w-12 bg-slate-300"></div>
+                            </div>
+
+                            <div v-if="props.eptResults" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 justify-items-center">
+                                <div v-for="(r, index) in props.eptResults" :key="index"
+                                    class="w-full max-w-sm bg-white rounded-2xl shadow-lg border border-slate-100 overflow-hidden hover:shadow-xl transition-all duration-300 group hover:-translate-y-1">
+                                    
+                                    <div class="bg-blue-600 p-4 text-white text-center relative overflow-hidden">
+                                        <div class="absolute top-0 left-0 w-full h-full bg-white opacity-10 transform -skew-x-12"></div>
+                                        <p class="text-xs uppercase tracking-widest opacity-80 mb-1">Tahun Tes</p>
+                                        <p class="text-2xl font-bold">{{ r.tahun }}</p>
+                                    </div>
+
+                                    <div class="p-6 space-y-4">
+                                        <div class="flex justify-between items-center border-b border-slate-50 pb-2">
+                                            <div class="flex items-center gap-2 text-slate-600">
+                                                <i class="pi pi-headphones text-blue-400"></i> Listening
+                                            </div>
+                                            <span class="font-bold text-slate-800">{{ r.listening }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center border-b border-slate-50 pb-2">
+                                            <div class="flex items-center gap-2 text-slate-600">
+                                                <i class="pi pi-book text-green-400"></i> Structure
+                                            </div>
+                                            <span class="font-bold text-slate-800">{{ r.structure }}</span>
+                                        </div>
+                                        <div class="flex justify-between items-center border-b border-slate-50 pb-2">
+                                            <div class="flex items-center gap-2 text-slate-600">
+                                                <i class="pi pi-eye text-orange-400"></i> Reading
+                                            </div>
+                                            <span class="font-bold text-slate-800">{{ r.reading }}</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-slate-50 p-4 flex justify-between items-center border-t border-slate-100">
+                                        <div>
+                                            <p class="text-xs text-slate-500 uppercase font-bold">Total Score</p>
+                                            <p class="text-xl font-black text-blue-700">{{ r.total_score }}</p>
+                                        </div>
+                                        <div class="text-right" v-if="r.level">
+                                            <p class="text-xs text-slate-500 uppercase font-bold">Level</p>
+                                            <Tag :value="r.level" severity="info" class="font-bold" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </transition>
+
             </div>
-            
-            <p v-if="errors.individu" class="text-red-600 text-sm mb-4">{{ errors.individu }}</p>
+        </section>
 
-            <Button
-              label="Lihat Hasil"
-              class="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-2 rounded-lg transition"
-              @click="handleCheckResult"
-              :disabled="form.processing"
-            />
-             <div v-if="form.processing" class="mt-4 text-center">
-                <ProgressSpinner style="width:30px; height:30px" />
-             </div>
-          </div>
-
-          <!-- Hasil EPT Individu -->
-          <div v-if="props.mahasiswa" class="text-center mt-10">
-            <h3 class="text-2xl font-bold text-gray-800">Peserta EPT: {{ props.mahasiswa.nama }}</h3>
-          </div>
-
-          <div v-if="props.eptResults" class="mt-10 flex flex-wrap justify-center gap-6">
-            <div v-for="(r, index) in props.eptResults" :key="index"
-                class="bg-gradient-to-br from-white to-blue-50 border border-gray-200 rounded-3xl shadow-lg p-6 w-72 flex flex-col justify-between transition-transform hover:scale-105">
-              
-              <div class="text-center mb-4">
-                <p class="text-gray-400 font-medium uppercase text-sm">Tahun</p>
-                <p class="text-blue-700 font-bold text-2xl">{{ r.tahun }}</p>
-              </div>
-
-              <div class="flex justify-between items-center py-2 border-b">
-                <p class="text-gray-600 font-medium">Listening</p>
-                <p class="text-indigo-600 font-semibold">{{ r.listening }}</p>
-              </div>
-
-              <div class="flex justify-between items-center py-2 border-b">
-                <p class="text-gray-600 font-medium">Structure</p>
-                <p class="text-green-600 font-semibold">{{ r.structure }}</p>
-              </div>
-
-              <div class="flex justify-between items-center py-2">
-                <p class="text-gray-600 font-medium">Reading</p>
-                <p class="text-orange-600 font-semibold">{{ r.reading }}</p>
-              </div>
-
-              <div class="flex justify-between items-center mt-4 pt-4 border-t-2 border-blue-200">
-                <p class="text-gray-700 font-semibold uppercase">Total</p>
-                <p class="text-blue-800 font-bold text-xl">{{ r.total_score }}</p>
-              </div>
-              <!-- New Level Display -->
-              <div v-if="r.level" class="text-center mt-4 pt-4 border-t-2 border-gray-200">
-                <p class="text-black font-bold uppercase">Level</p>
-                <p class="text-black font-bold text-xl">{{ r.level }}</p>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </section>
-    </Layout>
-  </div>
+    </div>
+  </Layout>
 </template>
 
 <style scoped>
-/* Custom styling for MultiSelect tokens to stack vertically */
-.multiselect-custom .p-multiselect-label {
-  display: flex;
-  flex-wrap: wrap; /* Allow tokens to wrap to the next line */
-  padding: 0.5rem 0.75rem; /* Adjust padding as needed */
+/* PrimeVue Override untuk MultiSelect agar lebih clean */
+:deep(.multiselect-custom) {
+    border-radius: 0.5rem;
+    border-color: #e2e8f0;
+    background-color: white;
+}
+:deep(.multiselect-custom:hover) {
+    border-color: #3b82f6;
+}
+:deep(.multiselect-custom.p-focus) {
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+    border-color: #3b82f6;
 }
 
-.multiselect-custom .p-multiselect-token {
-  display: block; /* Make each token take full width */
-  margin-bottom: 4px; /* Add some space between tokens */
-  width: 100%; /* Ensure it takes full width */
+/* Transition Fade */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
 }
 
-/* Adjust the container if needed */
-.multiselect-custom .p-multiselect-label-container {
-  display: block; /* Ensure the container allows vertical stacking */
+/* Animation Utility */
+.animate-fade-in-up {
+    animation: fadeInUp 0.5s ease-out forwards;
+}
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 </style>
