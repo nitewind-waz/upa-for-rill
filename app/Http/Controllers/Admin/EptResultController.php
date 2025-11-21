@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Models\EptResultMahasiswa;
+use App\Models\EptResultPesertaMahasiswa;
 use App\Models\Mahasiswa;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -26,7 +26,7 @@ class EptResultController extends Controller
         $mahasiswaId = $request->input('mahasiswa_id');
 
         // 2. Query Utama Data EPT
-        $results = EptResultMahasiswa::with('mahasiswa')
+        $results = EptResultPesertaMahasiswa::with('mahasiswa')
             ->when($globalFilter, function ($query, $filter) {
                 $query->whereHas('mahasiswa', function ($q) use ($filter) {
                     $q->where('nama', 'like', '%' . $filter . '%')
@@ -71,7 +71,7 @@ class EptResultController extends Controller
             $validated['sertifikat_pdf'] = $path;
         }
 
-        EptResultMahasiswa::create($validated);
+        EptResultPesertaMahasiswa::create($validated);
 
         return redirect()->back()->with('success', 'Data EPT berhasil ditambahkan.');
     }

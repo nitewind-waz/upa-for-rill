@@ -3,13 +3,13 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\EptResultMahasiswa;
+use App\Models\EptResultPesertaMahasiswa;
 
 class EptResultMahasiswaSeeder extends Seeder
 {
     public function run(): void
     {
-        EptResultMahasiswa::insert([
+        EptResultPesertaMahasiswa::insert([
             // Results for existing students
             [
                 'mahasiswa_id' => 1, 'tahun' => 2023, 'listening' => 480, 'structure' => 450, 'reading' => 470, 'total_score' => 467, 'sertifikat_pdf' => 'sertifikat_gilang_2023.pdf', 'created_at' => now(), 'updated_at' => now(),

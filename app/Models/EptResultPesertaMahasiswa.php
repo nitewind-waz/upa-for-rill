@@ -10,7 +10,7 @@ class EptResultPesertaMahasiswa extends Model
     use HasFactory;
 
     // Pastikan nama tabel sesuai jika tidak standar (biasanya Laravel mendeteksi otomatis: ept_result_mahasiswas)
-    protected $table = 'ept_results';
+    protected $table = 'ept_results_mahasiswa';
 
     protected $fillable = [
         'mahasiswa_id',
@@ -20,6 +20,7 @@ class EptResultPesertaMahasiswa extends Model
         'reading',
         'total_score',
         'sertifikat_pdf',
+        'level',
     ];
 
     protected $casts = [
