@@ -3,103 +3,68 @@ import { ref, computed } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import Layout from '@/layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import DataTable from 'primevue/datatable';
-import Column from 'primevue/column';
-import Card from 'primevue/card';
-import Chip from 'primevue/chip';
 
 const props = defineProps({
     jadwal: Array, 
+    jurusan: Array,
+    prodi: Array,
+    kelas: Array,
+    gedung: Array,
+    ruang: Array,
     errors: Object 
 })
 
 const page = usePage()
 
 const isEditing = ref(false);
-const editingSchedule = ref(null);
-
-const jurusanList = ref([
-    {
-        nama: 'Teknik Informatika dan Komputer',
-        prodi: [
-            { nama: 'D4 Teknik Informatika' },
-            { nama: 'D3 Teknik Informatika' },
-            { nama: 'D4 Teknik Komputer' },
-        ],
-    },
-    {
-        nama: 'Administrasi Niaga',
-        prodi: [{ nama: 'D4 Administrasi Bisnis' }],
-    },
-]);
-
-const rawKelasList = [
-    
-    { prodi: 'D4 Teknik Informatika', nama: '1A-D4TI' },
-    { prodi: 'D4 Teknik Informatika', nama: '1B-D4TI' },
-    { prodi: 'D4 Teknik Informatika', nama: '2A-D4TI' },
-    { prodi: 'D4 Teknik Informatika', nama: '2B-D4TI' },
-   
-    { prodi: 'D3 Teknik Informatika', nama: '1A-D3TI' },
-    { prodi: 'D3 Teknik Informatika', nama: '2A-D3TI' },
-   
-    { prodi: 'D4 Teknik Komputer', nama: '1A-D4TK' },
-    { prodi: 'D4 Teknik Komputer', nama: '2A-D4TK' },
-   
-    { prodi: 'D4 Administrasi Bisnis', nama: '1A-D4AB' },
-    { prodi: 'D4 Administrasi Bisnis', nama: '2A-D4AB' },
-];
 
 const form = ref({
     id: null,
-    jurusan: '',
-    prodi: '',
-    kelas: '',
-    tempat: '', 
-    gedung: '',
+    jurusan_id: '',
+    prodi_id: '',
+    kelas_id: '',
+    ruang_id: '', 
+    gedung_id: '',
     tanggal: '',
     waktu_mulai: '',
     waktu_selesai: ''
 })
 
-//memfilter daftar prodi berdasarkan jurusan yang dipilih
+// Memfilter daftar prodi berdasarkan jurusan yang dipilih
 const filteredProdiList = computed(() => {
-    const selectedJurusan = jurusanList.value.find(j => j.nama === form.value.jurusan);
-    return selectedJurusan ? selectedJurusan.prodi.map(p => p.nama) : [];
+    if (!form.value.jurusan_id) return [];
+    return props.prodi.filter(p => p.jurusan_id == form.value.jurusan_id);
 });
 
-//memfilter daftar kelas berdasarkan prodi yang dipilih
+// Memfilter daftar kelas berdasarkan prodi yang dipilih
 const filteredKelasList = computed(() => {
-    if (!form.value.prodi) return [];
-    return rawKelasList
-        .filter(kelas => kelas.prodi === form.value.prodi)
-        .map(kelas => kelas.nama);
+    if (!form.value.prodi_id) return [];
+    return props.kelas.filter(k => k.prodi_id == form.value.prodi_id);
 });
 
 const handleJurusanChange = () => {
-    form.value.prodi = '';
-    form.value.kelas = '';
+    form.value.prodi_id = '';
+    form.value.kelas_id = '';
 };
 
 const handleProdiChange = () => {
-    form.value.kelas = '';
+    form.value.kelas_id = '';
 };
 
 
 const resetForm = () => {
     form.value = {
         id: null,
-        jurusan: '',
-        prodi: '',
-        kelas: '',
-        tempat: '',
-        gedung: '',
+        jurusan_id: '',
+        prodi_id: '',
+        kelas_id: '',
+        ruang_id: '',
+        gedung_id: '',
         tanggal: '',
         waktu_mulai: '',
         waktu_selesai: ''
     };
     isEditing.value = false;
-    editingSchedule.value = null;
 };
 
 //Helpers
@@ -107,7 +72,7 @@ const formatTanggalIndonesia = (dateString) => {
     if (!dateString) return '-';
     try {
         const date = new Date(dateString);
-        date.setDate(date.getDate() + 1); 
+        // date.setDate(date.getDate() + 1); 
 
         const options = { 
             weekday: 'long', 
@@ -160,11 +125,17 @@ const saveSchedule = () => {
 
 const editSchedule = (schedule) => {
     isEditing.value = true;
-    editingSchedule.value = schedule;
     
     form.value = { 
-        ...schedule,
-        tanggal: schedule.tanggal ? new Date(schedule.tanggal).toISOString().split('T')[0] : ''
+        id: schedule.id,
+        jurusan_id: schedule.jurusan_id,
+        prodi_id: schedule.prodi_id,
+        kelas_id: schedule.kelas_id,
+        ruang_id: schedule.ruang_id,
+        gedung_id: schedule.gedung_id,
+        tanggal: schedule.tanggal ? new Date(schedule.tanggal).toISOString().split('T')[0] : '',
+        waktu_mulai: schedule.waktu_mulai,
+        waktu_selesai: schedule.waktu_selesai,
     };
 };
 
@@ -186,9 +157,9 @@ const deleteSchedule = (id) => {
 
             <h1 class="text-3xl font-bold text-gray-800">{{ isEditing ? 'Edit Jadwal EPT' : 'Kelola Jadwal EPT' }}</h1>
 
-            <div v-if="page.props.flash?.success"
+            <div v-if="page.props.success"
                 class="p-4 rounded bg-green-100 text-green-700">
-                {{ page.props.flash.success }}
+                {{ page.props.success }}
             </div>
 
             <div class="bg-white shadow rounded p-6">
@@ -200,83 +171,83 @@ const deleteSchedule = (id) => {
                         <label for="jurusan" class="text-gray-700 font-medium">Jurusan</label>
                         <select 
                             id="jurusan"
-                            v-model="form.jurusan" 
+                            v-model="form.jurusan_id" 
                             @change="handleJurusanChange" 
                             class="mt-1 border p-2 w-full rounded"
-                            :class="{'border-red-500': page.props.errors.jurusan}">
+                            :class="{'border-red-500': errors.jurusan_id}">
                             <option value="" disabled>Pilih Jurusan</option>
-                            <option v-for="jurusan in jurusanList" :key="jurusan.nama" :value="jurusan.nama">
-                                {{ jurusan.nama }}
+                            <option v-for="j in props.jurusan" :key="j.id" :value="j.id">
+                                {{ j.nama_jurusan }}
                             </option>
                         </select>
-                        <div v-if="page.props.errors.jurusan" class="text-red-500 text-sm">{{ page.props.errors.jurusan }}</div>
+                        <div v-if="errors.jurusan_id" class="text-red-500 text-sm">{{ errors.jurusan_id }}</div>
                     </div>
 
                     <div>
                         <label for="prodi" class="text-gray-700 font-medium">Prodi</label>
                         <select 
                             id="prodi"
-                            v-model="form.prodi" 
-                            @change="handleProdiChange" :disabled="!form.jurusan" 
+                            v-model="form.prodi_id" 
+                            @change="handleProdiChange" :disabled="!form.jurusan_id" 
                             class="mt-1 border p-2 w-full rounded"
-                            :class="{'border-red-500': page.props.errors.prodi, 'bg-gray-100': !form.jurusan}">
+                            :class="{'border-red-500': errors.prodi_id, 'bg-gray-100': !form.jurusan_id}">
                             <option value="" disabled>Pilih Prodi</option>
-                            <option v-for="prodi in filteredProdiList" :key="prodi" :value="prodi">
-                                {{ prodi }}
-                            </option>
-                            <option v-if="isEditing && form.prodi && !filteredProdiList.includes(form.prodi)" :value="form.prodi">
-                                {{ form.prodi }} (Saat ini)
+                            <option v-for="p in filteredProdiList" :key="p.id" :value="p.id">
+                                {{ p.nama_prodi }}
                             </option>
                         </select>
-                        <div v-if="page.props.errors.prodi" class="text-red-500 text-sm">{{ page.props.errors.prodi }}</div>
+                        <div v-if="errors.prodi_id" class="text-red-500 text-sm">{{ errors.prodi_id }}</div>
                     </div>
 
                     <div>
                         <label for="kelas" class="text-gray-700 font-medium">Kelas</label>
                         <select 
                             id="kelas"
-                            v-model="form.kelas" 
-                            :disabled="!form.prodi" class="mt-1 border p-2 w-full rounded"
-                            :class="{'border-red-500': page.props.errors.kelas, 'bg-gray-100': !form.prodi}">
+                            v-model="form.kelas_id" 
+                            :disabled="!form.prodi_id" class="mt-1 border p-2 w-full rounded"
+                            :class="{'border-red-500': errors.kelas_id, 'bg-gray-100': !form.prodi_id}">
                             <option value="" disabled>Pilih Kelas</option>
-                            <option v-for="kelas in filteredKelasList" :key="kelas" :value="kelas">
-                                {{ kelas }}
-                            </option>
-                            <option v-if="isEditing && form.kelas && !filteredKelasList.includes(form.kelas)" :value="form.kelas">
-                                {{ form.kelas }} (Saat ini)
+                            <option v-for="k in filteredKelasList" :key="k.id" :value="k.id">
+                                {{ k.nama_kelas }}
                             </option>
                         </select>
-                        <div v-if="page.props.errors.kelas" class="text-red-500 text-sm">{{ page.props.errors.kelas }}</div>
+                        <div v-if="errors.kelas_id" class="text-red-500 text-sm">{{ errors.kelas_id }}</div>
                     </div>
                     
                     <div>
-                        <label class="text-gray-700 font-medium">Tempat (Ruang)</label>
-                        <input v-model="form.tempat" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': page.props.errors.tempat}">
-                        <div v-if="page.props.errors.tempat" class="text-red-500 text-sm">{{ page.props.errors.tempat }}</div>
+                        <label for="ruang" class="text-gray-700 font-medium">Tempat (Ruang)</label>
+                        <select id="ruang" v-model="form.ruang_id" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.ruang_id}">
+                            <option value="" disabled>Pilih Ruang</option>
+                            <option v-for="r in props.ruang" :key="r.id" :value="r.id">{{ r.nama }}</option>
+                        </select>
+                        <div v-if="errors.ruang_id" class="text-red-500 text-sm">{{ errors.ruang_id }}</div>
                     </div>
 
                     <div>
-                        <label class="text-gray-700 font-medium">Gedung</label>
-                        <input v-model="form.gedung" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': page.props.errors.gedung}">
-                        <div v-if="page.props.errors.gedung" class="text-red-500 text-sm">{{ page.props.errors.gedung }}</div>
+                        <label for="gedung" class="text-gray-700 font-medium">Gedung</label>
+                        <select id="gedung" v-model="form.gedung_id" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.gedung_id}">
+                           <option value="" disabled>Pilih Gedung</option>
+                           <option v-for="g in props.gedung" :key="g.id" :value="g.id">{{ g.nama }}</option>
+                        </select>
+                        <div v-if="errors.gedung_id" class="text-red-500 text-sm">{{ errors.gedung_id }}</div>
                     </div>
 
                     <div>
                         <label class="text-gray-700 font-medium">Tanggal</label>
-                        <input type="date" v-model="form.tanggal" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': page.props.errors.tanggal}">
-                        <div v-if="page.props.errors.tanggal" class="text-red-500 text-sm">{{ page.props.errors.tanggal }}</div>
+                        <input type="date" v-model="form.tanggal" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.tanggal}">
+                        <div v-if="errors.tanggal" class="text-red-500 text-sm">{{ errors.tanggal }}</div>
                     </div>
 
                     <div>
                         <label class="text-gray-700 font-medium">Waktu Mulai (00:00)</label>
-                        <input type="time" v-model="form.waktu_mulai" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': page.props.errors.waktu_mulai}" step="60"> 
-                        <div v-if="page.props.errors.waktu_mulai" class="text-red-500 text-sm">{{ page.props.errors.waktu_mulai }}</div>
+                        <input type="time" v-model="form.waktu_mulai" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.waktu_mulai}" step="60"> 
+                        <div v-if="errors.waktu_mulai" class="text-red-500 text-sm">{{ errors.waktu_mulai }}</div>
                     </div>
 
                     <div>
                         <label class="text-gray-700 font-medium">Waktu Selesai (00:00)</label>
-                        <input type="time" v-model="form.waktu_selesai" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': page.props.errors.waktu_selesai}" step="60">
-                        <div v-if="page.props.errors.waktu_selesai" class="text-red-500 text-sm">{{ page.props.errors.waktu_selesai }}</div>
+                        <input type="time" v-model="form.waktu_selesai" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.waktu_selesai}" step="60">
+                        <div v-if="errors.waktu_selesai" class="text-red-500 text-sm">{{ errors.waktu_selesai }}</div>
                     </div>
                     
                     <div class="md:col-span-3 mt-4 flex space-x-3">
@@ -317,12 +288,11 @@ const deleteSchedule = (id) => {
                             :key="schedule.id" 
                             class="border-t hover:bg-gray-50">
                             
-                            <td class="p-3">{{ schedule.jurusan || '-' }}</td>
-                            <td class="p-3">{{ schedule.prodi || '-' }}</td>
-                            <td class="p-3">{{ schedule.kelas || '-' }}</td>
-                            
-                            <td class="p-3">{{ schedule.tempat || '-' }}</td>
-                            <td class="p-3">{{ schedule.gedung || '-' }}</td>
+                            <td class="p-3">{{ schedule.jurusan?.nama_jurusan || '-' }}</td>
+                            <td class="p-3">{{ schedule.prodi?.nama_prodi || '-' }}</td>
+                            <td class="p-3">{{ schedule.kelas?.nama_kelas || '-' }}</td>
+                            <td class="p-3">{{ schedule.ruang?.nama || '-' }}</td>
+                            <td class="p-3">{{ schedule.gedung?.nama || '-' }}</td>
                             
                             <td class="p-3">
                                 {{ formatTanggalIndonesia(schedule.tanggal) }}

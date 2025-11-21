@@ -11,36 +11,32 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('jadwal_test_mahasiswas', function (Blueprint $table) {
-            $table->id(); // Primary Key (Surrogate Key)
-
-            // Atribut-atribut dari 'Jadwal UPT'
+        Schema::create('ept_schedules', function (Blueprint $table) {
+            $table->id();
             $table->date('tanggal');
-            $table->time('jam_mulai');
-            $table->time('jam_selesai');
+            $table->time('waktu_mulai');
+            $table->time('waktu_selesai');
 
-            // --- Kumpulan Foreign Key (Identifying Relationships) ---
+            $table->foreignId('jurusan_id')
+                  ->constrained('jurusans')
+                  ->onDelete('cascade');
 
-            // 1. Relasi 'Mempunyai' ke Prodi
             $table->foreignId('prodi_id')
                   ->constrained('prodis')
                   ->onDelete('cascade');
 
-            // 2. Relasi 'Mendapatkan' ke Kelas
             $table->foreignId('kelas_id')
                   ->constrained('kelas')
                   ->onDelete('cascade');
             
-            // 3. Relasi 'Menggunakan' ke Ruang
             $table->foreignId('ruang_id')
                   ->constrained('ruangs')
                   ->onDelete('cascade');
 
-            // 4. Relasi 'Menggunakan' ke Gedung (sesuai ERD)
             $table->foreignId('gedung_id')
                   ->constrained('gedungs')
                   ->onDelete('cascade');
-
+            $table->timestamps();
         });
     }
 
@@ -49,7 +45,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jadwals');
+        Schema::dropIfExists('ept_schedules');
     }
 };
-
