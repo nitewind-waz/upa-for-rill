@@ -9,6 +9,7 @@ use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\Admin\EptResultController;
+use App\Http\Controllers\EptResultPesertaController;
 use App\Http\Controllers\PublicCourseController;
 use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\EptScheduleController;
