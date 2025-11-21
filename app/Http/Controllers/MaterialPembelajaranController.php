@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Illuminate\Support\Facades\Validator;
 
 class MaterialPembelajaranController extends Controller
 {
@@ -23,7 +24,7 @@ class MaterialPembelajaranController extends Controller
             return $material;
         });
 
-        return Inertia::render('AdminPembelajaran', [
+        return Inertia::render('admin/AdminPembelajaran', [
             'materialPembelajarans' => $materialPembelajarans,
         ]);
     }
@@ -33,12 +34,21 @@ class MaterialPembelajaranController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'required|string',
-            'link_pdf' => 'required_without:link_video|nullable|file|mimes:pdf,ppt,pptx|max:2048', // 2MB Max
+            'link_pdf' => 'required_without:link_video|nullable|file|mimes:pdf,ppt,pptx|max:2048',
             'link_video' => 'required_without:link_pdf|nullable|url|max:255',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if ($request->hasFile('link_pdf') && !empty($request->link_video)) {
+                $validator->errors()->add('link_video', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
+                $validator->errors()->add('link_pdf', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
+            }
+        });
+
+        $validated = $validator->validate();
 
         if ($request->hasFile('link_pdf')) {
             $validated['link_pdf'] = $request->file('link_pdf')->store('pembelajaran/pdf', 'public');
@@ -49,47 +59,55 @@ class MaterialPembelajaranController extends Controller
         return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil ditambahkan.');
     }
 
-    // Note: The update method uses a POST request from Inertia, so we can't use the typical route model binding for file uploads.
-    // We expect the file to be sent along with other data in a multipart/form-data request.
     public function update(Request $request, MaterialPembelajaran $materialPembelajaran)
     {
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'required|string',
             'link_pdf' => 'nullable|file|mimes:pdf,ppt,pptx|max:2048',
             'link_video' => 'nullable|url|max:255',
-            'remove_pdf' => 'nullable|boolean', // New flag
+            'remove_pdf' => 'nullable|boolean',
         ]);
+
+        $validator->after(function ($validator) use ($request) {
+            if ($request->hasFile('link_pdf') && !empty($request->link_video)) {
+                $validator->errors()->add('link_video', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
+                $validator->errors()->add('link_pdf', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
+            }
+        });
+
+        $validated = $validator->validate();
 
         $isRemovingPdf = $request->boolean('remove_pdf');
         $hasNewPdf = $request->hasFile('link_pdf');
         $hasVideo = !empty($validated['link_video']);
-        $hasExistingPdf = (bool)$materialPembelajaran->link_pdf;
         
-        // If there's no new PDF, no video link, AND we are effectively left with no PDF
-        // (either by removing it or because there wasn't one to begin with).
-        if (!$hasNewPdf && !$hasVideo && ($isRemovingPdf || !$hasExistingPdf)) {
+        // Prepare data for update
+        $materialPembelajaran->judul = $validated['judul'];
+        $materialPembelajaran->deskripsi_singkat = $validated['deskripsi_singkat'];
+        $materialPembelajaran->link_video = $validated['link_video'] ?? null;
+
+        if ($hasNewPdf) {
+            if ($materialPembelajaran->link_pdf) {
+                Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+            }
+            $materialPembelajaran->setAttribute('link_pdf', $request->file('link_pdf')->store('pembelajaran/pdf', 'public'));
+        } elseif ($isRemovingPdf) {
+            if ($materialPembelajaran->link_pdf) {
+                Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+            }
+            $materialPembelajaran->setAttribute('link_pdf', null);
+        }
+
+        $willHavePdf = $materialPembelajaran->link_pdf !== null;
+        if (!$willHavePdf && !$hasVideo) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'link_pdf' => 'Setidaknya harus ada file atau tautan video.',
                 'link_video' => 'Setidaknya harus ada file atau tautan video.',
             ]);
         }
         
-        if ($hasNewPdf) {
-            // If a new file is uploaded, delete the old one if it exists
-            if ($materialPembelajaran->link_pdf) {
-                Storage::disk('public')->delete($materialPembelajaran->link_pdf);
-            }
-            // Store the new file
-            $validated['link_pdf'] = $request->file('link_pdf')->store('pembelajaran/pdf', 'public');
-
-        } elseif ($isRemovingPdf && $hasExistingPdf) {
-            // If the user requested to remove the PDF and didn't upload a new one
-            Storage::disk('public')->delete($materialPembelajaran->link_pdf);
-            $validated['link_pdf'] = null; // Ensure the path is set to null in the database
-        }
-        
-        $materialPembelajaran->update($validated);
+        $materialPembelajaran->save();
         
         return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil diperbarui.');
     }

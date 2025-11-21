@@ -29,7 +29,11 @@ Route::get('/hasil', [EptResultController::class, 'index'])->name('hasil');
 Route::post('/hasil/check', [EptResultController::class, 'checkResult'])->name('hasil.check');
 Route::get('/hasil/stats', [EptResultController::class, 'getStats'])->name('hasil.stats');
 
-Route::resource('admin/pembelajaran', MaterialPembelajaranController::class)->withoutMiddleware(['auth', 'verified']);
+Route::prefix('admin')->group(function () {
+    Route::resource('pembelajaran', MaterialPembelajaranController::class)->parameters([
+        'pembelajaran' => 'materialPembelajaran'
+    ]);
+});
 
 
 require __DIR__.'/settings.php';
