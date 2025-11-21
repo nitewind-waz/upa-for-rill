@@ -1,10 +1,10 @@
 <?php
 
-use App\Http\Controllers\Admin\AcaraController;
-use App\Http\Controllers\Admin\BeritaController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
+use App\Http\Controllers\Admin\AcaraController;
+use App\Http\Controllers\Admin\BeritaController;
 use App\Http\Controllers\JurusanController;
 use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
