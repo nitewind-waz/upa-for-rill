@@ -21,10 +21,7 @@ Route::get('/', function () {
     return Inertia::render('mahasiswa/Dashboard');
 })->name('dashboard');
 
-Route::get('/jadwal', function(){
-    return Inertia::render('mahasiswa/Jadwal');
-})->name('jadwal');
-
+Route::get('/jadwal', [EptScheduleController::class, 'index'])->name('jadwal');
 
 Route::get('/hasil', [EptResultMahasiswaController::class, 'index'])->name('hasil');
 Route::post('/hasil/check', [EptResultMahasiswaController::class, 'checkResult'])->name('hasil.check');

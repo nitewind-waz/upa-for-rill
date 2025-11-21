@@ -16,10 +16,11 @@ class EptScheduleController extends Controller
     //  mahasiswa - tampil daftar jadwal 
     public function index()
     {
-        $jadwals = EptSchedule::orderBy('tanggal', 'asc')->get();
-
+        $jadwals = EptSchedule::with(['jurusan', 'prodi', 'kelas', 'ruang', 'gedung'])->orderBy('tanggal', 'asc')->get();
         return Inertia::render('mahasiswa/Jadwal', [
-            'jadwal' => $jadwals
+            'jadwal' => $jadwals,
+            'jurusan' => Jurusan::all(),
+            'prodi' => Prodi::all(),
         ]);
     }
 
@@ -84,5 +85,12 @@ class EptScheduleController extends Controller
         $jadwal = EptSchedule::findOrFail($id);
         $jadwal->delete();
         return redirect()->back()->with('success', 'Jadwal berhasil dihapus!');
+    }
+
+    // API - get all schedules
+    public function getSchedules()
+    {
+        $jadwals = EptSchedule::with(['jurusan', 'prodi', 'kelas', 'ruang', 'gedung'])->orderBy('tanggal', 'asc')->get();
+        return response()->json($jadwals);
     }
 }

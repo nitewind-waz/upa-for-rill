@@ -132,7 +132,7 @@
                 </a>
 
                 <a 
-                  href="https://instagram.com/upabahasa_polban"
+                  href="https://instagram.com/upaba.polban"
                   target="_blank"
                   class="flex items-center gap-3 p-3 rounded-lg hover:bg-pink-50 transition-colors group"
                 >
@@ -141,7 +141,7 @@
                   </div>
                   <div class="flex-1">
                     <p class="text-xs text-gray-500 font-medium">Instagram</p>
-                    <p class="text-sm text-gray-800 font-semibold">@upabahasa_polban</p>
+                    <p class="text-sm text-gray-800 font-semibold">@upaba.polban</p>
                   </div>
                 </a>
               </div>
@@ -216,8 +216,8 @@
               </div>
               <div class="flex items-center gap-3">
                 <i class="pi pi-instagram text-blue-300"></i>
-                <a href="https://instagram.com/upabahasa_polban" target="_blank" class="text-blue-100 hover:text-white transition-colors">
-                  @upabahasa_polban
+                <a href="https://instagram.com/upaba.polban" target="_blank" class="text-blue-100 hover:text-white transition-colors">
+                  @upaba.polban
                 </a>
               </div>
             </div>

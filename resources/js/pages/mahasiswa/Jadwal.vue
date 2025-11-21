@@ -1,103 +1,73 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import { Head } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { Head, router } from '@inertiajs/vue3';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Card from 'primevue/card';
 import Chip from 'primevue/chip';
 
+const props = defineProps({
+    jadwal: {
+        type: Array,
+        default: () => [],
+    },
+    jurusan: {
+        type: Array,
+        default: () => [],
+    },
+    prodi: {
+        type: Array,
+        default: () => [],
+    },
+});
+
 const selectedUserType = ref('');
-const selectedJurusan = ref('');
-const selectedProdi = ref('');
+const selectedJurusan = ref(null); 
+const selectedProdi = ref(null); 
 
-const jurusanList = ref([
-  {
-    nama: 'Teknik Informatika dan Komputer',
-    prodi: [
-      { nama: 'D4 Teknik Informatika' },
-      { nama: 'D3 Teknik Informatika' },
-      { nama: 'D4 Teknik Komputer' },
-    ],
-  },
-  {
-    nama: 'Administrasi Niaga',
-    prodi: [{ nama: 'D4 Administrasi Bisnis' }],
-  },
-]);
 
-const jadwalMahasiswa = ref([
-  {
-    id: 1,
-    prodi: 'D4 Teknik Informatika',
-    kelas: '2A-D4',
-    tempat: '402',
-    gedung: 'Gedung H',
-    tanggal: 'Sabtu, 20 September 2025',
-    waktu_mulai: '09:00',
-    waktu_selesai: '12:00',
-  },
-  {
-    id: 2,
-    prodi: 'D4 Teknik Informatika',
-    kelas: '2B-D4',
-    tempat: '404',
-    gedung: 'Gedung H',
-    tanggal: 'Sabtu, 20 September 2025',
-    waktu_mulai: '09:00',
-    waktu_selesai: '12:00',
-  },
-  {
-    id: 3,
-    prodi: 'D3 Teknik Informatika',
-    kelas: '2A-D3',
-    tempat: '402',
-    gedung: 'Gedung H',
-    tanggal: 'Sabtu, 20 September 2025',
-    waktu_mulai: '13:00',
-    waktu_selesai: '15:00',
-  },
-]);
+const jadwalMahasiswaComputed = computed(() => {
+    return props.jadwal.filter(j => j.prodi_id !== null && j.kelas_id !== null);
+});
 
-const jadwalPublik = ref([
-  {
-    id: 1,
-    prodi: 'Publik Batch 1',
-    kelas: '-',
-    tempat: 'Lab Bahasa 1',
-    gedung: 'Gedung UPA',
-    tanggal: 'Minggu, 25 September 2025',
-    waktu_mulai: '09:00',
-    waktu_selesai: '11:00',
-  },
-  {
-    id: 2,
-    prodi: 'Publik Batch 2',
-    kelas: '-',
-    tempat: 'Lab Bahasa 2',
-    gedung: 'Gedung UPA',
-    tanggal: 'Sabtu, 18 Oktober 2025',
-    waktu_mulai: '13:00',
-    waktu_selesai: '15:00',
-  },
-]);
 
-const getProdiByJurusan = (jurusanNama) => {
-  const jurusan = jurusanList.value.find((j) => j.nama === jurusanNama);
-  return jurusan ? jurusan.prodi : [];
-};
+const jadwalPublikComputed = computed(() => {
+    return props.jadwal.filter(j => j.prodi_id === null && j.kelas_id === null);
+});
+
+
+const prodiList = computed(() => {
+    if (!selectedJurusan.value) {
+        return [];
+    }
+    return props.prodi.filter(p => p.jurusan_id === selectedJurusan.value);
+});
+
 
 const filteredJadwal = computed(() => {
   if (selectedUserType.value === 'publik') {
-    return jadwalPublik.value;
+    return jadwalPublikComputed.value;
   } else if (selectedUserType.value === 'mahasiswa') {
     if (selectedProdi.value) {
-      return jadwalMahasiswa.value.filter(
-        (j) => j.prodi === selectedProdi.value
+      return jadwalMahasiswaComputed.value.filter(
+        (j) => j.prodi_id === selectedProdi.value
       );
     }
   }
   return [];
+});
+
+let polling = null;
+
+onMounted(() => {
+  polling = setInterval(() => {
+    router.reload({ only: ['jadwal'] });
+  }, 20000); // refresh data dalam 20 detik
+});
+
+onUnmounted(() => {
+  clearInterval(polling);
 });
 </script>
 
@@ -108,7 +78,6 @@ const filteredJadwal = computed(() => {
     <!-- Header -->
     <section class="bg-gradient-to-r from-blue-900 to-blue-800 py-14">
       <div class="container mx-auto px-4">
-        <Chip label="Jadwal EPT" class="mb-3 bg-orange-500 text-white" />
         <h1 class="text-4xl font-bold text-white mb-2">Jadwal EPT</h1>
         <p class="text-gray-200 text-lg">
           Pilih kategori untuk menampilkan jadwal EPT
@@ -150,14 +119,15 @@ const filteredJadwal = computed(() => {
         <select
           v-model="selectedJurusan"
           class="border rounded-b-md p-2 bg-white"
+          @change="selectedProdi = null"
         >
-          <option value="">-- Pilih Jurusan --</option>
+          <option :value="null">-- Pilih Jurusan --</option>
           <option
-            v-for="j in jurusanList"
-            :key="j.nama"
-            :value="j.nama"
+            v-for="j in props.jurusan"
+            :key="j.id"
+            :value="j.id"
           >
-            {{ j.nama }}
+            {{ j.nama_jurusan }}
           </option>
         </select>
       </div>
@@ -176,13 +146,13 @@ const filteredJadwal = computed(() => {
           v-model="selectedProdi"
           class="border rounded-b-md p-2 bg-white"
         >
-          <option value="">-- Pilih Prodi --</option>
+          <option :value="null">-- Pilih Prodi --</option>
           <option
-            v-for="p in getProdiByJurusan(selectedJurusan)"
-            :key="p.nama"
-            :value="p.nama"
+            v-for="p in prodiList"
+            :key="p.id"
+            :value="p.id"
           >
-            {{ p.nama }}
+            {{ p.nama_prodi }}
           </option>
         </select>
       </div>
@@ -196,10 +166,26 @@ const filteredJadwal = computed(() => {
         <Card>
           <template #content>
             <DataTable :value="filteredJadwal" stripedRows responsiveLayout="scroll">
-              <Column field="prodi" header="Prodi" sortable />
-              <Column field="kelas" header="Kelas" sortable />
-              <Column field="tempat" header="Tempat" sortable />
-              <Column field="gedung" header="Gedung" sortable />
+              <Column header="Prodi" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.prodi?.nama_prodi || '-' }}
+                  </template>
+              </Column>
+              <Column header="Kelas" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.kelas?.nama_kelas || '-' }}
+                  </template>
+              </Column>
+              <Column header="Tempat" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.ruang?.nama || '-' }}
+                  </template>
+              </Column>
+              <Column header="Gedung" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.gedung?.nama || '-' }}
+                  </template>
+              </Column>
               <Column field="tanggal" header="Tanggal" sortable />
               <Column field="waktu_mulai" header="Waktu Mulai" sortable />
               <Column field="waktu_selesai" header="Waktu Selesai" sortable />
