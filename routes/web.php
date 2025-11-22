@@ -9,6 +9,7 @@ use App\Http\Controllers\ProdiController;
 use App\Http\Controllers\KelasController;
 use App\Http\Controllers\EptResultController;
 use App\Http\Controllers\MaterialPembelajaranController;
+use App\Http\Controllers\MahasiswaPembelajaranController;
 
 Route::get('/lololol', function () {
     return Inertia::render('Welcome', [
@@ -35,5 +36,7 @@ Route::prefix('admin')->group(function () {
     ]);
 });
 
+Route::get('/mahasiswa/pembelajaran', [MahasiswaPembelajaranController::class, 'index'])
+    ->name('mahasiswa.pembelajaran');
 
 require __DIR__.'/settings.php';
