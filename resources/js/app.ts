@@ -19,8 +19,8 @@ createInertiaApp({
   title: (title) => (title ? `${title} - ${appName}` : appName),
   resolve: (name) =>
     resolvePageComponent(
-      `./Pages/${name}.vue`, // Huruf besar P untuk Pages (sesuai struktur Laravel)
-      import.meta.glob<DefineComponent>('./Pages/**/*.vue'),
+      `./pages/${name}.vue`, // Huruf besar P untuk Pages (sesuai struktur Laravel)
+      import.meta.glob<DefineComponent>('./pages/**/*.vue'),
     ),
   setup({ el, App, props, plugin }) {
     const vueApp = createApp({ render: () => h(App, props) });
