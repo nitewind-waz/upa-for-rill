@@ -59,7 +59,7 @@ class MaterialPembelajaranController extends Controller
         return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil ditambahkan.');
     }
 
-    public function update(Request $request, MaterialPembelajaran $materialPembelajaran)
+    public function update(Request $request, MaterialPembelajaran $pembelajaran)
     {
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
@@ -83,23 +83,23 @@ class MaterialPembelajaranController extends Controller
         $hasVideo = !empty($validated['link_video']);
         
         // Prepare data for update
-        $materialPembelajaran->judul = $validated['judul'];
-        $materialPembelajaran->deskripsi_singkat = $validated['deskripsi_singkat'];
-        $materialPembelajaran->link_video = $validated['link_video'] ?? null;
+        $pembelajaran->judul = $validated['judul'];
+        $pembelajaran->deskripsi_singkat = $validated['deskripsi_singkat'];
+        $pembelajaran->link_video = $validated['link_video'] ?? null;
 
         if ($hasNewPdf) {
-            if ($materialPembelajaran->link_pdf) {
-                Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+            if ($pembelajaran->link_pdf) {
+                Storage::disk('public')->delete($pembelajaran->link_pdf);
             }
-            $materialPembelajaran->setAttribute('link_pdf', $request->file('link_pdf')->store('pembelajaran/pdf', 'public'));
+            $pembelajaran->setAttribute('link_pdf', $request->file('link_pdf')->store('pembelajaran/pdf', 'public'));
         } elseif ($isRemovingPdf) {
-            if ($materialPembelajaran->link_pdf) {
-                Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+            if ($pembelajaran->link_pdf) {
+                Storage::disk('public')->delete($pembelajaran->link_pdf);
             }
-            $materialPembelajaran->setAttribute('link_pdf', null);
+            $pembelajaran->setAttribute('link_pdf', null);
         }
 
-        $willHavePdf = $materialPembelajaran->link_pdf !== null;
+        $willHavePdf = $pembelajaran->link_pdf !== null;
         if (!$willHavePdf && !$hasVideo) {
             throw \Illuminate\Validation\ValidationException::withMessages([
                 'link_pdf' => 'Setidaknya harus ada file atau tautan video.',
@@ -107,7 +107,7 @@ class MaterialPembelajaranController extends Controller
             ]);
         }
         
-        $materialPembelajaran->save();
+        $pembelajaran->save();
         
         return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil diperbarui.');
     }
@@ -117,14 +117,14 @@ class MaterialPembelajaranController extends Controller
      */
     public function destroy($id)
     {
-        $materialPembelajaran = MaterialPembelajaran::findOrFail($id);
+        $pembelajaran = MaterialPembelajaran::findOrFail($id);
 
         try {
-            if ($materialPembelajaran->link_pdf) {
-                Storage::disk('public')->delete($materialPembelajaran->link_pdf);
+            if ($pembelajaran->link_pdf) {
+                Storage::disk('public')->delete($pembelajaran->link_pdf);
             }
 
-            $deleted = $materialPembelajaran->delete();
+            $deleted = $pembelajaran->delete();
 
             if ($deleted) {
                 return redirect()->route('pembelajaran.index')->with('success', 'Materi Pembelajaran berhasil dihapus.');

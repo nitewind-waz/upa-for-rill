@@ -30,9 +30,16 @@ Route::post('/hasil/check', [EptResultController::class, 'checkResult'])->name('
 Route::get('/hasil/stats', [EptResultController::class, 'getStats'])->name('hasil.stats');
 
 Route::prefix('admin')->group(function () {
-    Route::resource('pembelajaran', MaterialPembelajaranController::class)->parameters([
-        'pembelajaran' => 'materialPembelajaran'
-    ]);
+    // Route::resource('pembelajaran', MaterialPembelajaranController::class);
+
+    // Add explicit routes
+    Route::get('pembelajaran', [MaterialPembelajaranController::class, 'index'])->name('pembelajaran.index');
+    Route::post('pembelajaran', [MaterialPembelajaranController::class, 'store'])->name('pembelajaran.store');
+
+    // THE CRITICAL CHANGE: Define the update route as POST
+    Route::post('pembelajaran/{pembelajaran}', [MaterialPembelajaranController::class, 'update'])->name('pembelajaran.update');
+
+    Route::delete('pembelajaran/{pembelajaran}', [MaterialPembelajaranController::class, 'destroy'])->name('pembelajaran.destroy');
 });
 
 

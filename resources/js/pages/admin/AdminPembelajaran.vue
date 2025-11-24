@@ -14,43 +14,39 @@ import FileUpload from "primevue/fileupload";
 import Toast from "primevue/toast";
 import InputError from "@/components/InputError.vue";
 
-const props = defineProps({
+defineProps({
     materialPembelajarans: {
         type: Array,
         default: () => [],
     },
 });
 
-// Toast
 const toast = useToast();
 
-// Dialog
 const showDialog = ref(false);
 const showDeleteDialog = ref(false);
 
-// Form
 const form = useForm({
     id: null,
     judul: "",
     deskripsi_singkat: "",
-    link_pdf: null, // This will hold the file object
+    link_pdf: null,
     link_video: "",
-    remove_pdf: false, // Flag to indicate if the existing PDF should be removed
+    remove_pdf: false, 
 });
 
-// For binding inside dialog
 const material = ref({
     id: null,
     judul: "",
     deskripsi_singkat: "",
-    link_pdf_url: null, // To display existing PDF link
+    link_pdf_url: null, 
     link_video: "",
 });
 
-// Open NEW dialog
 const openNew = () => {
     form.reset();
-    form.remove_pdf = false; // Reset the flag
+    form.remove_pdf = false;
+
     material.value = {
         id: null,
         judul: "",
@@ -61,12 +57,10 @@ const openNew = () => {
     showDialog.value = true;
 };
 
-// Close
 const closeDialog = () => {
     showDialog.value = false;
 };
 
-// Handle FILE upload
 const onFileSelect = (event: any) => {
     const file = event.files[0];
     if (file) {
@@ -74,23 +68,21 @@ const onFileSelect = (event: any) => {
     }
 };
 
-// Save NEW or UPDATE
 const saveMaterial = () => {
-    form.clearErrors(); // Clear previous errors
+    form.clearErrors();
 
     form.id = material.value.id;
     form.judul = material.value.judul;
     form.deskripsi_singkat = material.value.deskripsi_singkat;
     form.link_video = material.value.link_video;
 
-    // Client-side validation for required fields
+    // Basic client-side validation
     if (!form.judul || !form.deskripsi_singkat) {
         form.errors.judul = form.errors.judul || "Judul wajib diisi.";
         form.errors.deskripsi_singkat = form.errors.deskripsi_singkat || "Deskripsi Singkat wajib diisi.";
         return;
     }
 
-    // For new materials or when editing, require at least a file or a link.
     if (!form.link_pdf && !form.link_video && !material.value.link_pdf_url) {
         form.errors.link_pdf = "Harap unggah file atau masukkan tautan video.";
         form.errors.link_video = "Harap unggah file atau masukkan tautan video.";
@@ -98,33 +90,31 @@ const saveMaterial = () => {
     }
 
     if (form.id) {
-        // Update: Inertia requires POST for multipart forms, so we use _method: "PUT"
-        form.transform((data) => ({ ...data, _method: "PUT" }))
-            .post('/admin/pembelajaran/' + form.id, {
-                forceFormData: true, // Important for file uploads
+        // Use POST for updates to support file uploads, as defined in web.php
+        form.post('/admin/pembelajaran/' + form.id, {
+                forceFormData: true, 
                 onSuccess: () => {
                     toast.add({ severity: "success", summary: "Berhasil", detail: "Materi diperbarui!", life: 3000 });
                     closeDialog();
+                    form.reset(); 
                 },
                 onError: (errors) => {
                     console.error(errors);
-                    // If no specific field errors, show a general error toast
                     if (Object.keys(errors).length === 0) {
                         toast.add({ severity: "error", summary: "Error", detail: "Gagal memperbarui materi. Periksa kembali isian Anda.", life: 3000 });
                     }
                 },
             });
     } else {
-        // Create
         form.post('/admin/pembelajaran', {
-            forceFormData: true, // Important for file uploads
+            forceFormData: true, 
             onSuccess: () => {
                 toast.add({ severity: "success", summary: "Berhasil", detail: "Materi berhasil ditambahkan!", life: 3000 });
                 closeDialog();
+                form.reset();
             },
             onError: (errors) => {
                 console.error(errors);
-                // If no specific field errors, show a general error toast
                 if (Object.keys(errors).length === 0) {
                     toast.add({ severity: "error", summary: "Error", detail: "Gagal membuat materi. Periksa kembali isian Anda.", life: 3000 });
                 }
@@ -133,23 +123,19 @@ const saveMaterial = () => {
     }
 };
 
-// Edit data
 const editMaterial = (item: any) => {
     material.value = { ...item };
-    form.reset(); // Reset form state before populating
-    form.remove_pdf = false; // Reset the flag
+    form.reset(); 
+    form.remove_pdf = false; 
     showDialog.value = true;
 };
 
-// Delete confirmation
 const confirmDelete = (item: any) => {
     material.value = item;
     showDeleteDialog.value = true;
 };
 
-// Execute DELETE
 const deleteMaterial = () => {
-    // We can use the simpler delete helper here as no file is being sent
     useForm({}).delete('/admin/pembelajaran/' + material.value.id, {
         onSuccess: () => {
             toast.add({ severity: "success", summary: "Dihapus", detail: "Materi berhasil dihapus", life: 3000 });
@@ -162,10 +148,9 @@ const deleteMaterial = () => {
     });
 };
 
-// Request to remove the existing PDF
 const requestRemovePdf = () => {
     form.remove_pdf = true;
-    material.value.link_pdf_url = null; // Remove from view
+    material.value.link_pdf_url = null; 
     toast.add({ severity: "info", summary: "Info", detail: "File akan dihapus saat disimpan.", life: 3000 });
 };
 </script>
@@ -175,7 +160,6 @@ const requestRemovePdf = () => {
     <Toast />
 
     <div class="p-6">
-        <!-- Title -->
         <div class="bg-white shadow rounded-xl p-5 mb-6">
             <div class="flex justify-between items-center">
                 <h1 class="text-xl font-bold text-black">📘 Manajemen Material Pembelajaran</h1>
@@ -183,7 +167,6 @@ const requestRemovePdf = () => {
             </div>
         </div>
 
-        <!-- Table -->
         <div class="bg-white shadow rounded-xl p-4">
             <DataTable :value="materialPembelajarans" responsiveLayout="scroll">
                 <Column field="judul" header="Judul" sortable></Column>
@@ -218,7 +201,6 @@ const requestRemovePdf = () => {
             </DataTable>
         </div>
 
-        <!-- Dialog Tambah/Edit -->
         <Dialog 
             v-model:visible="showDialog" 
             modal 
@@ -229,7 +211,6 @@ const requestRemovePdf = () => {
 
             <div class="flex flex-col gap-4">
 
-                <!-- Judul -->
                 <div>
                     <label class="block mb-1 font-medium text-black">Judul</label>
                     <InputText 
@@ -241,7 +222,6 @@ const requestRemovePdf = () => {
                     <InputError :message="form.errors.judul" />
                 </div>
 
-                <!-- Deskripsi -->
                 <div>
                     <label class="block mb-1 font-medium text-black">Deskripsi Singkat</label>
                     <Textarea 
@@ -254,7 +234,6 @@ const requestRemovePdf = () => {
                     <InputError :message="form.errors.deskripsi_singkat" />
                 </div>
 
-                <!-- Upload File -->
                 <div>
                     <label class="block mb-1 font-medium text-black">Upload File (PDF/PPT)</label>
                     <FileUpload 
@@ -286,7 +265,6 @@ const requestRemovePdf = () => {
                     </div>
                 </div>
 
-                <!-- YouTube Link -->
                 <div>
                     <label class="block mb-1 font-medium text-black">Link Video YouTube</label>
                     <InputText 
@@ -300,7 +278,6 @@ const requestRemovePdf = () => {
 
             </div>
 
-            <!-- Footer -->
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <Button label="Batal" icon="pi pi-times" @click="closeDialog" />
@@ -311,9 +288,8 @@ const requestRemovePdf = () => {
         </Dialog>
 
 
-        <!-- Delete Dialog -->
         <Dialog v-model:visible="showDeleteDialog" modal header="Konfirmasi Hapus" :style="{ width: '380px' }">
-            <p class="text-black">Yakin ingin menghapus <b>{{ material.judul }}</b>?</p> <!-- Added text-black -->
+            <p class="text-black">Yakin ingin menghapus <b>{{ material.judul }}</b>?</p>
 
             <template #footer>
                 <Button label="Batal" icon="pi pi-times" @click="showDeleteDialog = false" />
