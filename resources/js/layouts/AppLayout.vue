@@ -271,20 +271,30 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed} from 'vue'
+import {Link, usePage} from '@inertiajs/vue3'
 import Avatar from 'primevue/avatar'
 import Button from 'primevue/button'
 import Card from 'primevue/card'
 import Divider from 'primevue/divider'
 import Sidebar from 'primevue/sidebar'
 
+const Page = usePage();
+
 const navItems = ref([
   { label: 'Home', url: '/', active: false },
-  { label: 'Kursus', url: '/kursus', active: true },
-  { label: 'Pembelajaran', url: '/pembelajaran', active: false },
+  { label: 'Kursus', url: '/kursus', active: false },
+  { label: 'Pembelajaran', url: '/mahasiswa/pembelajaran', active: false },
   { label: 'Jadwal EPT', url: '/jadwal', active: false },
   { label: 'Hasil EPT', url: '/hasil', active: false },
 ])
+
+const currentUrl = Page.url
+
+navItems.value = navItems.value.map(item => ({
+  ...item,
+  active: currentUrl === item.url
+}))
 
 const contactVisible = ref(false)
 const mobileMenuVisible = ref(false)
