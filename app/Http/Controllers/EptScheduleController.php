@@ -4,6 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Http\Controllers;
 use App\Models\EptSchedule;
+use App\Models\Jurusan;
+use App\Models\Kelas;
+use App\Models\Gedung;
+use App\Models\Ruang;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -23,9 +27,18 @@ class EptScheduleController extends Controller
     public function adminIndex()
     {
         $jadwals = EptSchedule::orderBy('tanggal', 'asc')->get();
+        $jurusans = Jurusan::with('prodi')->get();
+        $kelas = Kelas::with('prodi')->get();
+        $gedungs = Gedung::all();
+        $ruangs = Ruang::all();
+
 
         return Inertia::render('admin/EptSchedulePage', [
             'jadwal' => $jadwals,
+            'jurusan' => $jurusans,
+            'kelas' => $kelas,
+            'gedung' => $gedungs,
+            'ruang' => $ruangs,
             'success' => session('success')
         ]);
     }
@@ -36,6 +49,9 @@ class EptScheduleController extends Controller
     public function store(Request $request)
     {
         $request->validate([
+            'jurusan' => 'required|string',
+            'prodi' => 'required|string',
+            'kelas' => 'nullable|string',
             'tempat' => 'required|string',
             'gedung' => 'nullable|string',
             'tanggal' => 'required|date',

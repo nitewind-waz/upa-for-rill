@@ -19,8 +19,12 @@ import { useToast } from "primevue/usetoast";
 import { useConfirm } from "primevue/useconfirm";
 
 const props = defineProps({
-    jadwal: Array, 
-    errors: Object 
+    jadwal: Array,
+    jurusan: Array,
+    kelas: Array,
+    gedung: Array,
+    ruang: Array,
+    errors: Object
 });
 
 const page = usePage();
@@ -31,35 +35,6 @@ const confirm = useConfirm();
 const scheduleDialog = ref(false);
 const isEditing = ref(false);
 const submitted = ref(false);
-
-// Data Master (Hardcoded sesuai snippetmu)
-const jurusanList = ref([
-    {
-        nama: 'Teknik Informatika dan Komputer',
-        prodi: [
-            { nama: 'D4 Teknik Informatika' },
-            { nama: 'D3 Teknik Informatika' },
-            { nama: 'D4 Teknik Komputer' },
-        ],
-    },
-    {
-        nama: 'Administrasi Niaga',
-        prodi: [{ nama: 'D4 Administrasi Bisnis' }],
-    },
-]);
-
-const rawKelasList = [
-    { prodi: 'D4 Teknik Informatika', nama: '1A-D4TI' },
-    { prodi: 'D4 Teknik Informatika', nama: '1B-D4TI' },
-    { prodi: 'D4 Teknik Informatika', nama: '2A-D4TI' },
-    { prodi: 'D4 Teknik Informatika', nama: '2B-D4TI' },
-    { prodi: 'D3 Teknik Informatika', nama: '1A-D3TI' },
-    { prodi: 'D3 Teknik Informatika', nama: '2A-D3TI' },
-    { prodi: 'D4 Teknik Komputer', nama: '1A-D4TK' },
-    { prodi: 'D4 Teknik Komputer', nama: '2A-D4TK' },
-    { prodi: 'D4 Administrasi Bisnis', nama: '1A-D4AB' },
-    { prodi: 'D4 Administrasi Bisnis', nama: '2A-D4AB' },
-];
 
 const form = ref({
     id: null,
@@ -77,19 +52,20 @@ const form = ref({
 
 // Filter Prodi berdasarkan Jurusan
 const filteredProdiList = computed(() => {
-    const selectedJurusan = jurusanList.value.find(j => j.nama === form.value.jurusan);
-    // Kita return object {nama: '...'} agar kompatibel dengan PrimeVue Dropdown optionLabel
+    if (!form.value.jurusan) return [];
+    const selectedJurusan = props.jurusan.find(j => j.nama === form.value.jurusan);
     return selectedJurusan ? selectedJurusan.prodi : [];
 });
 
 // Filter Kelas berdasarkan Prodi
 const filteredKelasList = computed(() => {
     if (!form.value.prodi) return [];
-    // Filter dari raw list, lalu map ke format object agar konsisten
-    return rawKelasList
-        .filter(kelas => kelas.prodi === form.value.prodi)
-        .map(kelas => ({ nama: kelas.nama }));
+    
+    return props.kelas
+        .filter(k => k.prodi && k.prodi.nama === form.value.prodi)
+        .map(k => ({ nama: k.nama_kelas }));
 });
+
 
 // --- HANDLERS ---
 
@@ -130,6 +106,7 @@ const saveSchedule = () => {
 
     // Validasi sederhana di frontend
     if (!form.value.jurusan || !form.value.prodi || !form.value.tanggal) {
+        toast.add({ severity: 'error', summary: 'Gagal', detail: 'Harap isi semua field yang wajib diisi.', life: 3000 });
         return;
     }
 
@@ -141,8 +118,12 @@ const saveSchedule = () => {
                 toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Jadwal berhasil diperbarui', life: 3000 });
                 hideDialog();
             },
-            onError: () => {
-                toast.add({ severity: 'error', summary: 'Gagal', detail: 'Terjadi kesalahan validasi', life: 3000 });
+            onError: (errors) => {
+                let errorMessages = 'Terjadi kesalahan: ';
+                if (errors) {
+                    errorMessages += Object.values(errors).join('; ');
+                }
+                toast.add({ severity: 'error', summary: 'Gagal', detail: errorMessages, life: 5000 });
             }
         });
     } else {
@@ -151,8 +132,12 @@ const saveSchedule = () => {
                 toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Jadwal berhasil dibuat', life: 3000 });
                 hideDialog();
             },
-            onError: () => {
-                toast.add({ severity: 'error', summary: 'Gagal', detail: 'Terjadi kesalahan validasi', life: 3000 });
+           onError: (errors) => {
+                let errorMessages = 'Gagal membuat jadwal. ';
+                if (errors) {
+                    errorMessages += Object.values(errors).join('; ');
+                }
+                toast.add({ severity: 'error', summary: 'Gagal', detail: errorMessages, life: 5000 });
             }
         });
     }
@@ -297,7 +282,7 @@ const formatTanggalIndonesia = (dateString) => {
                         <label class="block text-sm font-medium text-slate-700 mb-1">Jurusan</label>
                         <Dropdown 
                             v-model="form.jurusan" 
-                            :options="jurusanList" 
+                            :options="props.jurusan" 
                             optionLabel="nama" 
                             optionValue="nama" 
                             placeholder="Pilih Jurusan" 
@@ -333,7 +318,7 @@ const formatTanggalIndonesia = (dateString) => {
                             :disabled="!form.prodi"
                             editable 
                         />
-                        <small class="text-slate-400 text-xs">Bisa ketik manual jika tidak ada di list.</small>
+                         <small class="text-slate-400 text-xs">Bisa ketik manual jika tidak ada di list.</small>
                     </div>
 
                     <div class="col-span-2">
@@ -357,12 +342,24 @@ const formatTanggalIndonesia = (dateString) => {
                     </div>
 
                     <div>
-                         <label class="block text-sm font-medium text-slate-700 mb-1">Ruangan / Tempat</label>
-                         <InputText v-model="form.tempat" placeholder="Contoh: Lab 402" />
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Gedung</label>
+                        <Dropdown 
+                            v-model="form.gedung"
+                            :options="props.gedung"
+                            optionLabel="nama_gedung"
+                            optionValue="nama_gedung"
+                            placeholder="Pilih Gedung"
+                        />
                     </div>
                     <div>
-                         <label class="block text-sm font-medium text-slate-700 mb-1">Gedung</label>
-                         <InputText v-model="form.gedung" placeholder="Contoh: Gedung H" />
+                         <label class="block text-sm font-medium text-slate-700 mb-1">Ruangan</label>
+                        <Dropdown 
+                            v-model="form.tempat"
+                            :options="props.ruang"
+                            optionLabel="nama_ruang"
+                            optionValue="nama_ruang"
+                            placeholder="Pilih Ruang"
+                        />
                     </div>
                 </div>
             </div>
