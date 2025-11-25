@@ -13,10 +13,14 @@ return new class extends Migration
     {
         Schema::create('ept_schedules', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('jurusan_id')->nullable()->constrained('jurusans')->nullOnDelete();
             $table->foreignId('prodi_id')->nullable()->constrained('prodis')->nullOnDelete();
             $table->foreignId('kelas_id')->nullable()->constrained('kelas')->nullOnDelete();
-            $table->string('tempat')->nullable();
-            $table->string('gedung')->nullable();
+            
+            // Define columns without constraints first
+            $table->foreignId('ruang_id')->nullable();
+            $table->foreignId('gedung_id')->nullable();
+
             $table->date('tanggal');
             $table->time('waktu_mulai')->nullable();
             $table->time('waktu_selesai')->nullable();
@@ -30,6 +34,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('jadwals');
+        Schema::dropIfExists('ept_schedules');
     }
 };

@@ -1,9 +1,9 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
 
-// PrimeVue Components
+// PrimeVue
 import DataTable from 'primevue/datatable';
 import Column from 'primevue/column';
 import Dropdown from 'primevue/dropdown';
@@ -13,12 +13,7 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import InputText from 'primevue/inputtext';
 
-// --- DEFINISI PROPS ---
 const props = defineProps({
-    jurusanList: {
-        type: Array,
-        default: () => []
-    },
     jadwalMahasiswa: {
         type: Array,
         default: () => []
@@ -26,67 +21,127 @@ const props = defineProps({
     jadwalPublik: {
         type: Array,
         default: () => []
-    }
+    },
+    jurusan: Array,
+    prodi: Array,
 });
 
-// Static Options
+// Tambahkan ini untuk debug
+console.log('Jadwal Mahasiswa:', props.jadwalMahasiswa);
+console.log('Jadwal Publik:', props.jadwalPublik);
+console.log('Jurusan:', props.jurusan);
+console.log('Prodi:', props.prodi);
+
+// Static Options for User Type
 const userTypes = [
     { label: 'Mahasiswa Polban', value: 'mahasiswa', icon: 'pi pi-id-card' },
     { label: 'Peserta Umum / Publik', value: 'publik', icon: 'pi pi-users' }
 ];
 
-// State Filter
-const selectedUserType = ref(null);
-const selectedJurusan = ref(null);
-const selectedProdi = ref(null);
-const globalFilter = ref(''); // Untuk pencarian text bebas di tabel
+// ======================
+// FILTER STATES
+// ======================
+const selectedUserType = ref(null); // Re-added
+const selectedJurusanId = ref(null);
+const selectedProdiId = ref(null);
+const globalFilter = ref('');
 
-// Logic Helper
-const getProdiByJurusan = (jurusanNama) => {
-  const jurusan = props.jurusanList.find((j) => j.nama === jurusanNama);
-  return jurusan ? jurusan.prodi : [];
-};
+// Reset Prodi & Jurusan ketika User Type berubah
+watch(selectedUserType, () => {
+    selectedJurusanId.value = null;
+    selectedProdiId.value = null;
+});
 
-// Computed Filter Logic
+// Reset Prodi ketika Jurusan berubah
+watch(selectedJurusanId, () => {
+    selectedProdiId.value = null;
+});
+
+
+// ======================
+// DROPDOWN PRODI TERGANTUNG JURUSAN
+// ======================
+const prodiOptions = computed(() => {
+    if (!selectedJurusanId.value) return [];
+    return props.prodi.filter(p => p.jurusan_id === selectedJurusanId.value);
+});
+
+// ======================
+// FILTER UTAMA
+// ======================
 const filteredJadwal = computed(() => {
-  let data = [];
-  
-  if (selectedUserType.value === 'publik') {
-    data = props.jadwalPublik;
-  } else if (selectedUserType.value === 'mahasiswa') {
-    if (selectedProdi.value) {
-      data = props.jadwalMahasiswa.filter((j) => j.prodi === selectedProdi.value);
-    }
+  let baseData = [];
+  if (selectedUserType.value === 'mahasiswa') {
+    baseData = Array.isArray(props.jadwalMahasiswa) ? props.jadwalMahasiswa : [];
+  } else if (selectedUserType.value === 'publik') {
+    baseData = Array.isArray(props.jadwalPublik) ? props.jadwalPublik : [];
+  } else {
+    return []; // No user type selected, no data to show
   }
+
+  let data = baseData;
   
-  // Filter tambahan berdasarkan pencarian text (globalFilter)
+  // Apply Jurusan/Prodi filter only for Mahasiswa type
+  if (selectedUserType.value === 'mahasiswa') {
+      if (selectedProdiId.value) {
+        data = data.filter(j => j.prodi_id === selectedProdiId.value);
+      } else if (selectedJurusanId.value) {
+        const prodiInJurusan = prodiOptions.value.map(p => p.id);
+        data = data.filter(j => prodiInJurusan.includes(j.prodi_id));
+      }
+  }
+
   if (globalFilter.value) {
     const query = globalFilter.value.toLowerCase();
+    
     return data.filter(item => {
-       return Object.values(item).some(val => 
-          String(val).toLowerCase().includes(query)
-       );
+      const jurusanName = item.jurusan?.nama_jurusan?.toLowerCase() || '';
+      const prodiName = item.prodi?.nama_prodi?.toLowerCase() || '';
+      const kelasName = item.kelas?.nama_kelas?.toLowerCase() || '';
+      const ruangName = item.ruang?.nama?.toLowerCase() || '';
+      const gedungName = item.gedung?.nama?.toLowerCase() || '';
+
+      return (
+        jurusanName.includes(query) ||
+        prodiName.includes(query) ||
+        kelasName.includes(query) ||
+        ruangName.includes(query) ||
+        gedungName.includes(query) ||
+        item.tanggal.toLowerCase().includes(query)
+      );
     });
   }
 
   return data;
 });
 
+// ======================
+// RESET FILTER
+// ======================
 const resetFilter = () => {
     selectedUserType.value = null;
-    selectedJurusan.value = null;
-    selectedProdi.value = null;
-    globalFilter.value = '';
-}
+    selectedJurusanId.value = null;
+    selectedProdiId.value = null;
+    globalFilter.value = "";
+};
 
-const getStatusSeverity = (status) => {
-    switch(status) {
-        case 'Dibuka': return 'success';
-        case 'Penuh': return 'danger';
-        case 'Selesai': return 'secondary';
-        default: return 'warning';
+// ======================
+// STATUS (Dibuka / Selesai)
+// ======================
+const getStatusSeverity = (tanggal, waktuSelesai) => {
+    if (!tanggal || !waktuSelesai) {
+        return { label: "Tidak Valid", severity: "danger" };
     }
-}
+
+    const scheduleDateTime = new Date(`${tanggal}T${waktuSelesai}`);
+    const now = new Date();
+
+    if (scheduleDateTime < now) {
+        return { label: 'Selesai', severity: 'secondary' };
+    }
+
+    return { label: 'Dibuka', severity: 'success' };
+};
 </script>
 
 <template>
@@ -129,7 +184,7 @@ const getStatusSeverity = (status) => {
                              <p class="text-sm text-slate-500 mt-1">Pilih kategori peserta untuk melihat jadwal yang sesuai.</p>
                         </div>
                         <Button 
-                            v-if="selectedUserType" 
+                            v-if="selectedUserType || selectedJurusanId || selectedProdiId || globalFilter" 
                             label="Reset Filter" 
                             icon="pi pi-refresh" 
                             severity="secondary" 
@@ -164,36 +219,30 @@ const getStatusSeverity = (status) => {
                         <div class="flex flex-col gap-2" :class="{ 'opacity-50 pointer-events-none': selectedUserType !== 'mahasiswa' }">
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Jurusan</label>
                             <Dropdown 
-                                v-model="selectedJurusan" 
-                                :options="props.jurusanList" 
-                                optionLabel="nama" 
-                                optionValue="nama" 
+                                v-model="selectedJurusanId" 
+                                :options="props.jurusan" 
+                                optionLabel="nama_jurusan" 
+                                optionValue="id" 
                                 placeholder="Pilih Jurusan..." 
                                 class="w-full p-inputtext-sm custom-dropdown"
-                                filter
+                                showClear
                                 :disabled="selectedUserType !== 'mahasiswa'"
                             />
                         </div>
 
-                        <div class="flex flex-col gap-2" :class="{ 'opacity-50 pointer-events-none': !selectedJurusan || selectedUserType !== 'mahasiswa' }">
+                        <div class="flex flex-col gap-2" :class="{ 'opacity-50 pointer-events-none': !selectedJurusanId || selectedUserType !== 'mahasiswa' }">
                             <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">Program Studi</label>
                             <Dropdown 
-                                v-model="selectedProdi" 
-                                :options="getProdiByJurusan(selectedJurusan)" 
-                                optionLabel="nama" 
-                                optionValue="nama" 
+                                v-model="selectedProdiId" 
+                                :options="prodiOptions" 
+                                optionLabel="nama_prodi" 
+                                optionValue="id" 
                                 placeholder="Pilih Prodi..." 
                                 class="w-full p-inputtext-sm custom-dropdown"
-                                :disabled="!selectedJurusan || selectedUserType !== 'mahasiswa'"
+                                :disabled="!selectedJurusanId || selectedUserType !== 'mahasiswa'"
+                                showClear
                                 emptyMessage="Pilih Jurusan dahulu"
                             />
-                        </div>
-
-                        <div v-if="selectedUserType === 'publik'" class="md:col-span-2 md:col-start-2">
-                             <div class="bg-blue-100/50 border border-blue-200 rounded-lg p-3 flex items-center gap-3 text-blue-700 text-sm">
-                                <i class="pi pi-info-circle text-lg"></i>
-                                <span>Menampilkan seluruh jadwal tes yang terbuka untuk <strong>Umum / Publik</strong>.</span>
-                             </div>
                         </div>
                     </div>
                 </div>
@@ -234,16 +283,16 @@ const getStatusSeverity = (status) => {
                             class="p-datatable-sm custom-table"
                             columnResizeMode="fit"
                         >
-                            <Column field="prodi" header="Program / Batch" sortable style="min-width: 200px">
+                            <Column header="Program" sortable field="prodi.nama_prodi" style="min-width: 200px">
                                 <template #body="{ data }">
-                                    <div class="font-bold text-slate-700">{{ data.prodi }}</div>
-                                    <div class="text-xs text-slate-500 mt-1" v-if="selectedUserType === 'mahasiswa'">Mahasiswa Polban</div>
-                                    <div class="text-xs text-slate-500 mt-1" v-else>Umum</div>
+                                    <div class="font-bold text-slate-700">{{ data.prodi?.nama_prodi }}</div>
+                                    <div class="text-xs text-slate-500 mt-1">{{ data.jurusan?.nama_jurusan }}</div>
                                 </template>
                             </Column>
-                            <Column field="kelas" header="Kelas" sortable style="min-width: 100px">
+                            <Column header="Kelas" sortable field="kelas.nama_kelas" style="min-width: 100px">
                                 <template #body="{ data }">
-                                    <Tag :value="data.kelas" severity="secondary" class="font-mono !text-slate-600 bg-slate-100 border border-slate-200" rounded />
+                                    <Tag :value="data.kelas?.nama_kelas" severity="secondary" class="font-mono !text-slate-600 bg-slate-100 border border-slate-200" rounded v-if="data.kelas_id" />
+                                    <Tag value="UMUM" severity="info" class="font-mono !text-slate-600 bg-slate-100 border border-slate-200" rounded v-else />
                                 </template>
                             </Column>
                             <Column header="Waktu & Tanggal" sortable field="tanggal" style="min-width: 220px">
@@ -255,7 +304,7 @@ const getStatusSeverity = (status) => {
                                         </div>
                                         <div class="flex items-center gap-2 text-xs text-slate-500">
                                             <i class="pi pi-clock"></i>
-                                            <span>{{ data.waktu }} WIB</span>
+                                            <span>{{ data.waktu_mulai?.substring(0,5) }} - {{ data.waktu_selesai?.substring(0,5) }} WIB</span>
                                         </div>
                                     </div>
                                 </template>
@@ -263,9 +312,9 @@ const getStatusSeverity = (status) => {
                             <Column header="Lokasi Tes" style="min-width: 200px">
                                 <template #body="{ data }">
                                     <div class="flex flex-col">
-                                        <span class="font-semibold text-slate-700">{{ data.tempat }}</span>
+                                        <span class="font-semibold text-slate-700">{{ data.ruang?.nama }}</span>
                                         <span class="text-xs text-slate-500 flex items-center gap-1 mt-0.5">
-                                            <i class="pi pi-map-marker text-[10px]"></i> {{ data.gedung }}
+                                            <i class="pi pi-map-marker text-[10px]"></i> {{ data.gedung?.nama }}
                                         </span>
                                     </div>
                                 </template>
@@ -273,8 +322,8 @@ const getStatusSeverity = (status) => {
                              <Column field="status" header="Status" sortable style="min-width: 120px">
                                 <template #body="{ data }">
                                     <Tag 
-                                        :value="data.status" 
-                                        :severity="getStatusSeverity(data.status)" 
+                                        :value="getStatusSeverity(data.tanggal, data.waktu_selesai).label" 
+                                        :severity="getStatusSeverity(data.tanggal, data.waktu_selesai).severity" 
                                         class="!text-xs !font-bold shadow-sm"
                                     />
                                 </template>
@@ -296,7 +345,7 @@ const getStatusSeverity = (status) => {
                         </div>
                         <h3 class="text-lg font-bold text-slate-800">Jadwal Tidak Ditemukan</h3>
                         <p class="text-slate-500 max-w-md mx-auto mt-2">Maaf, belum ada jadwal EPT yang tersedia untuk kriteria pencarian Anda saat ini.</p>
-                        <Button label="Reset Pencarian" text class="mt-4" @click="resetFilter" />
+                        <Button v-if="selectedUserType || selectedJurusanId || selectedProdiId || globalFilter" label="Reset Pencarian" text class="mt-4" @click="resetFilter" />
                     </div>
 
                 </transition>

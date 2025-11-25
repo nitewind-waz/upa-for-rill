@@ -19,6 +19,10 @@ class DatabaseSeeder extends Seeder
             EptResultMahasiswaSeeder::class,
             PublikSeeder::class,
             EptResultPublikSeeder::class,
+            GedungSeeder::class,
+            RuangSeeder::class,
+            CreateAdmin::class,
+            EptScheduleSeeder::class,
         ]);
     }
 }

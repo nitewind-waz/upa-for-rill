@@ -42,12 +42,19 @@ const getImageUrl = (path, type) => {
             Pusat layanan bahasa unggulan untuk mendukung civitas akademika Politeknik Negeri Bandung.
           </p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <button class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm shadow-lg transition-all hover:-translate-y-1">
+            <Link
+              href="/jadwal"
+              class="inline-block px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm shadow-lg transition-all hover:-translate-y-1"
+            >
               Jadwal Tes EPT
-            </button>
-            <button class="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/50 rounded-full font-semibold text-sm backdrop-blur-md transition-all hover:-translate-y-1">
+            </Link>
+
+            <Link
+              href="/kursus"
+              class="inline-block px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/50 rounded-full font-semibold text-sm backdrop-blur-md transition-all hover:-translate-y-1"
+            >
               Program Kursus
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -172,15 +179,6 @@ const getImageUrl = (path, type) => {
                   <p class="text-slate-500 text-sm leading-relaxed line-clamp-3 mb-4">
                     {{ item.deskripsi_singkat }}
                   </p>
-                </div>
-                
-                <div class="mt-auto pt-4 border-t border-blue-200 flex items-center justify-between">
-                  <span class="text-xs font-bold text-blue-600 uppercase tracking-wider group-hover:underline cursor-pointer">
-                    Baca Selengkapnya
-                  </span>
-                  <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
-                     <i class="pi pi-arrow-right text-xs"></i>
-                  </div>
                 </div>
               </div>
             </div>

@@ -21,7 +21,7 @@ class Jurusan extends Model
     /**
      * Relasi: Satu Jurusan memiliki banyak Prodi
      */
-    public function prodis(): HasMany
+    public function prodi(): HasMany
     {
         return $this->hasMany(Prodi::class, 'jurusan_id', 'id');
     }

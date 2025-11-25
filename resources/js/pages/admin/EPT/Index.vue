@@ -340,15 +340,15 @@ const submitImportForm = () => {
                     <div class="grid grid-cols-3 gap-4">
                         <div>
                             <label class="block text-xs text-slate-600 mb-1">Listening</label>
-                            <InputNumber v-model="createForm.listening" :min="0" :max="68" placeholder="0" inputClass="text-center" :invalid="!!createForm.errors.listening" />
+                            <InputNumber v-model="createForm.listening" :min="0" :max="677" placeholder="0" inputClass="text-center" :invalid="!!createForm.errors.listening" />
                         </div>
                         <div>
                             <label class="block text-xs text-slate-600 mb-1">Structure</label>
-                            <InputNumber v-model="createForm.structure" :min="0" :max="68" placeholder="0" inputClass="text-center" :invalid="!!createForm.errors.structure" />
+                            <InputNumber v-model="createForm.structure" :min="0" :max="677" placeholder="0" inputClass="text-center" :invalid="!!createForm.errors.structure" />
                         </div>
                         <div>
                             <label class="block text-xs text-slate-600 mb-1">Reading</label>
-                            <InputNumber v-model="createForm.reading" :min="0" :max="67" placeholder="0" inputClass="text-center" :invalid="!!createForm.errors.reading" />
+                            <InputNumber v-model="createForm.reading" :min="0" :max="677" placeholder="0" inputClass="text-center" :invalid="!!createForm.errors.reading" />
                         </div>
                     </div>
                 </div>

@@ -235,12 +235,12 @@ const barChartOptions = {
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">NIM / NIK</label>
                                     <input v-model="form.nim" type="text" placeholder="Nomor Induk Mahasiswa" 
-                                        class="w-full border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                        class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                                 </div>
                                 <div>
                                     <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Password</label>
                                     <input v-model="form.password" type="password" placeholder="Kata sandi akun" 
-                                        class="w-full border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
+                                        class="w-full border border-slate-200 rounded-lg px-4 py-2.5 text-black focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent" />
                                 </div>
                                 
                                 <div v-if="errors.individu" class="bg-red-50 text-red-600 text-sm p-3 rounded-lg flex items-center gap-2">

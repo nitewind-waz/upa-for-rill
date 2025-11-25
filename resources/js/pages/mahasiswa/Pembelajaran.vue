@@ -12,7 +12,10 @@ const getYouTubeEmbedUrl = (url) => {
 };
 
 const props = defineProps({
-    materis: Array, 
+    materis: {
+        type: Array,
+        default: () => []
+    }
 });
 
 
@@ -59,23 +62,28 @@ const closeModal = () => {
     <AppLayout title="Pembelajaran">
         <Head title="Pembelajaran" />
         
-        <div 
-            class="relative mb-8 p-12 bg-cover bg-center shadow-md w-screen left-1/2 right-1/2 -translate-x-1/2 overflow-hidden" 
-            style="
-                background-image: url('/images/header-pembelajaran.jpg'); 
-                background-color: #0B2447; 
-                min-height: 200px; 
-                background-position: center 25%;
-            "
-        >
-            <div class="absolute inset-0 bg-black opacity-30"></div>
-            
-            <div class="relative z-10 p-4 md:p-8 max-w-7xl mx-auto">
-                <h1 class="text-3xl md:text-4xl font-extrabold text-white text-center mb-2">Pembelajaran Bahasa</h1>
-                <p class="text-sm md:text-base text-white text-center">Akses berbagai jenis materi pembelajaran untuk meningkatkan kemampuan bahasa Anda.</p>
-            </div>
-        </div>
-        <div class="container mx-auto p-4 md:p-8 pt-0">
+            <section class="relative w-full h-[350px] flex items-center justify-center overflow-hidden z-10 shadow-md">
+                <div
+                    class="absolute inset-0 w-full h-full bg-cover bg-center z-0 animate-[pulse_15s_ease-in-out_infinite]"
+                    style="background-image: url('/banner-upa.jpeg');"
+                ></div>
+                <div class="absolute inset-0 bg-blue-900/60 z-10"></div> <!-- Darker blue overlay -->
+                <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50 z-20"></div> <!-- Fade to white at bottom -->
+
+
+                <div class="relative z-30 container mx-auto px-6 text-center flex flex-col justify-center h-full pt-4">
+                    <span class="inline-block py-1 px-2 rounded-full bg-blue-600/30 border border-blue-400/50 text-blue-50 text-xs font-bold mb-4 backdrop-blur-md uppercase tracking-widest">
+                        Materi Belajar
+                    </span>
+                    <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-3">
+                        Pembelajaran Bahasa
+                    </h1>
+                    <p class="text-base md:text-lg text-white/90 max-w-2xl mx-auto mb-6 font-medium leading-relaxed drop-shadow-md">
+                        Akses berbagai jenis materi pembelajaran untuk meningkatkan kemampuan bahasa Anda.
+                    </p>
+                </div>
+            </section>
+        <div class="container mx-auto p-4 md:p-8">
             
             <div class="flex justify-center space-x-2 mb-12">
                 

@@ -44,16 +44,15 @@
           </template>
         </div>
 
-        <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-          <div class="flex items-center gap-3">
-            <Avatar label="A" class="bg-blue-100 text-blue-700" shape="circle" />
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-semibold text-slate-900 truncate">Admin User</p>
-              <p class="text-xs text-slate-500 truncate">admin@upabahasa.ac.id</p>
-            </div>
-          </div>
-        </div>
-      </div>
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50">
+              <div class="flex items-center gap-3">
+                <Avatar :label="props.user?.name ? props.user.name.charAt(0).toUpperCase() : 'A'" class="bg-blue-100 text-blue-700" shape="circle" />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-900 truncate">{{ props.user?.name || 'Admin User' }}</p>
+                  <p class="text-xs text-slate-500 truncate">{{ props.user?.email || 'admin@upabahasa.ac.id' }}</p>
+                </div>
+              </div>
+            </div>      </div>
     </Sidebar>
 
     <div class="hidden lg:flex fixed left-0 top-0 h-screen w-72 bg-white border-r border-slate-200 z-40 flex-col">
@@ -106,21 +105,27 @@
         </Link>
       </div>
 
-      <div class="p-4 border-t border-slate-200 bg-slate-50/50">
-        <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all cursor-pointer border border-transparent hover:border-slate-200">
-          <Avatar 
-            label="A" 
-            class="bg-blue-600 text-white shadow-sm shadow-blue-200" 
-            shape="circle"
-          />
-          <div class="flex-1 min-w-0">
-            <p class="text-sm font-bold text-slate-800 truncate">Admin User</p>
-            <p class="text-xs text-slate-500 truncate">admin@upabahasa.ac.id</p>
-          </div>
-          <i class="pi pi-sign-out text-slate-400 hover:text-red-500 transition-colors"></i>
-        </div>
-      </div>
-
+          <div class="p-4 border-t border-slate-200 bg-slate-50/50">
+              <div class="flex items-center gap-3 p-2 rounded-lg hover:bg-white hover:shadow-sm transition-all cursor-pointer border border-transparent hover:border-slate-200">
+                <Avatar
+                  :label="props.user?.name ? props.user.name.charAt(0).toUpperCase() : 'A'"
+                  class="bg-blue-600 text-white shadow-sm shadow-blue-200"
+                  shape="circle"
+                />
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-bold text-slate-800 truncate">{{ props.user?.name || 'Admin User' }}</p>
+                  <p class="text-xs text-slate-500 truncate">{{ props.user?.email || 'admin@upabahasa.ac.id' }}</p>
+                </div>
+                <Link
+                  href="/admin/logout"
+                  method="post"
+                  as="button"
+                  class="cursor-pointer"
+                >
+                  <i class="pi pi-sign-out text-slate-400 hover:text-red-500 transition-colors"></i>
+                </Link>
+              </div>
+            </div>
     </div>
   </div>
 </template>
@@ -135,6 +140,10 @@ import Avatar from 'primevue/avatar';
 const page = usePage();
 const visible = ref(false);
 
+const props = defineProps({
+    user: Object, // Define the user prop
+});
+
 // Logic untuk mengecek active state (support nested routes basic)
 const isActive = (path: string): boolean => {
   if (path === '/home' && page.url === '/home') return true;
@@ -143,11 +152,11 @@ const isActive = (path: string): boolean => {
 };
 
 const menuItems = [
-  { label: 'Dashboard', icon: 'pi pi-home', route: '/home' },
-  { label: 'Mahasiswa', icon: 'pi pi-users', route: '/mahasiswa' },
+  { label: 'Dashboard', icon: 'pi pi-home', route: '/admin/dashboard' },
   { label: 'Jadwal', icon: 'pi pi-calendar', route: '/admin/jadwal' },
-  { label: 'Nilai EPT', icon: 'pi pi-chart-bar', route: '/ept' }, // Disesuaikan dengan route sebelumnya
-  { label: 'Kursus', icon: 'pi pi-book', route: '/admin/course' },
+  { label: 'Nilai EPT', icon: 'pi pi-chart-bar', route: '/admin/ept' }, // Disesuaikan dengan route sebelumnya
+  { label: 'Kelola Kursus', icon: 'pi pi-book', route: '/admin/course' },
+  { label: 'Kelola Pembelajaran', icon: 'pi pi-book', route: '/admin/pembelajaran' },
   { label: 'Kelola Berita', icon: 'pi pi-megaphone', route: '/admin/berita' },
   { label: 'Kelola Acara', icon: 'pi pi-calendar-plus', route: '/admin/acara' },
 ];

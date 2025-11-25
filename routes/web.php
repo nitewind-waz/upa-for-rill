@@ -16,7 +16,9 @@ use App\Http\Controllers\Admin\CourseController;
 use App\Http\Controllers\Admin\BeritaController;
 use App\Http\Controllers\Admin\AcaraController;
 use App\Http\Controllers\Admin\EptResultController;
-use App\Http\Controllers\EptScheduleController; 
+use App\Http\Controllers\EptScheduleController;
+use App\Http\Controllers\MaterialPembelajaranController; 
+use App\Http\Controllers\MahasiswaPembelajaranController; 
 
 /*
 |--------------------------------------------------------------------------
@@ -32,9 +34,7 @@ Route::get('/', [BerandaController::class, 'index'])->name('home');
 Route::get('/course', [PublicCourseController::class, 'index'])->name('course.index');
 
 // Jadwal EPT (View Mahasiswa)
-Route::get('/jadwal', function () {
-    return Inertia::render('mahasiswa/Jadwal');
-})->name('jadwal');
+Route::get('/jadwal', [EptScheduleController::class, 'index'])->name('jadwal');
 
 // Hasil EPT (Cek Nilai)
 Route::controller(EptResultPesertaController::class)->prefix('hasil')->name('hasil')->group(function () {
@@ -42,6 +42,9 @@ Route::controller(EptResultPesertaController::class)->prefix('hasil')->name('has
     Route::post('/check', 'checkResult')->name('.check'); // route('hasil.check')
     Route::get('/stats', 'getStats')->name('.stats');     // route('hasil.stats')
 });
+
+// Pembelajaran (View Mahasiswa)
+Route::get('/pembelajaran', [MahasiswaPembelajaranController::class, 'index'])->name('pembelajaran');
 
 
 /*
@@ -71,9 +74,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
         // Dashboard
-        Route::get('/dashboard', function () {
-            return Inertia::render('admin/Dashboard'); // Pastikan file vue ini ada
-        })->name('dashboard');
+        Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // --- MANAJEMEN COURSE (CRUD) ---
         // Menggunakan resource controller standard
@@ -104,6 +105,14 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::post('/', 'store')->name('store');   // admin.ept.store
             Route::post('/import', 'import')->name('import'); // admin.ept.import
         });
+
+        // --- MANAJEMEN PEMBELAJARAN (MATERI) ---
+        // Resource-like routes for MaterialPembelajaran
+        Route::get('pembelajaran', [MaterialPembelajaranController::class, 'index'])->name('pembelajaran.index');
+        Route::post('pembelajaran', [MaterialPembelajaranController::class, 'store'])->name('pembelajaran.store');
+        Route::get('pembelajaran/{pembelajaran}/edit', [MaterialPembelajaranController::class, 'edit'])->name('pembelajaran.edit'); // Added edit route
+        Route::put('pembelajaran/{pembelajaran}', [MaterialPembelajaranController::class, 'update'])->name('pembelajaran.update');  // Changed to PUT
+        Route::delete('pembelajaran/{pembelajaran}', [MaterialPembelajaranController::class, 'destroy'])->name('pembelajaran.destroy');
 
     });
 

@@ -21,6 +21,7 @@ import { useConfirm } from "primevue/useconfirm";
 const props = defineProps({
     jadwal: Array,
     jurusan: Array,
+    prodi: Array, // Now a top-level prop
     kelas: Array,
     gedung: Array,
     ruang: Array,
@@ -31,18 +32,18 @@ const page = usePage();
 const toast = useToast();
 const confirm = useConfirm();
 
-// State untuk Modal & Form
+// State untuk Modal & Form (using IDs)
 const scheduleDialog = ref(false);
 const isEditing = ref(false);
 const submitted = ref(false);
 
 const form = ref({
     id: null,
-    jurusan: '',
-    prodi: '',
-    kelas: '',
-    tempat: '', 
-    gedung: '',
+    jurusan_id: null,
+    prodi_id: null,
+    kelas_id: null,
+    ruang_id: null, 
+    gedung_id: null,
     tanggal: '',
     waktu_mulai: '',
     waktu_selesai: ''
@@ -50,20 +51,16 @@ const form = ref({
 
 // --- COMPUTED LOGIC ---
 
-// Filter Prodi berdasarkan Jurusan
+// Filter Prodi berdasarkan Jurusan ID
 const filteredProdiList = computed(() => {
-    if (!form.value.jurusan) return [];
-    const selectedJurusan = props.jurusan.find(j => j.nama === form.value.jurusan);
-    return selectedJurusan ? selectedJurusan.prodi : [];
+    if (!form.value.jurusan_id) return [];
+    return props.prodi.filter(p => p.jurusan_id === form.value.jurusan_id);
 });
 
-// Filter Kelas berdasarkan Prodi
+// Filter Kelas berdasarkan Prodi ID
 const filteredKelasList = computed(() => {
-    if (!form.value.prodi) return [];
-    
-    return props.kelas
-        .filter(k => k.prodi && k.prodi.nama === form.value.prodi)
-        .map(k => ({ nama: k.nama_kelas }));
+    if (!form.value.prodi_id) return [];
+    return props.kelas.filter(k => k.prodi_id === form.value.prodi_id);
 });
 
 
@@ -72,11 +69,11 @@ const filteredKelasList = computed(() => {
 const openNew = () => {
     form.value = {
         id: null,
-        jurusan: '',
-        prodi: '',
-        kelas: '',
-        tempat: '',
-        gedung: '',
+        jurusan_id: null,
+        prodi_id: null,
+        kelas_id: null,
+        ruang_id: null, 
+        gedung_id: null,
         tanggal: '',
         waktu_mulai: '',
         waktu_selesai: ''
@@ -93,24 +90,24 @@ const hideDialog = () => {
 
 // Reset child dropdown saat parent berubah
 const handleJurusanChange = () => {
-    form.value.prodi = '';
-    form.value.kelas = '';
+    form.value.prodi_id = null;
+    form.value.kelas_id = null;
 };
 
 const handleProdiChange = () => {
-    form.value.kelas = '';
+    form.value.kelas_id = null;
 };
 
 const saveSchedule = () => {
     submitted.value = true;
 
-    // Validasi sederhana di frontend
-    if (!form.value.jurusan || !form.value.prodi || !form.value.tanggal) {
-        toast.add({ severity: 'error', summary: 'Gagal', detail: 'Harap isi semua field yang wajib diisi.', life: 3000 });
-        return;
-    }
-
+    // The validation is now primarily on the backend
     const payload = { ...form.value };
+
+    // Rename ruang_id to tempat for the backend, as the column is likely 'tempat'
+    // but the validation expects 'ruang_id'. Let's align with validation.
+    // The controller validation expects: juruan_id, prodi_id, kelas_id, ruang_id, gedung_id
+    // So the payload is correct as is.
 
     if (isEditing.value) {
         router.put(`/admin/jadwal/${form.value.id}`, payload, {
@@ -119,10 +116,7 @@ const saveSchedule = () => {
                 hideDialog();
             },
             onError: (errors) => {
-                let errorMessages = 'Terjadi kesalahan: ';
-                if (errors) {
-                    errorMessages += Object.values(errors).join('; ');
-                }
+                let errorMessages = 'Terjadi kesalahan validasi: ' + Object.values(errors).join('; ');
                 toast.add({ severity: 'error', summary: 'Gagal', detail: errorMessages, life: 5000 });
             }
         });
@@ -133,10 +127,7 @@ const saveSchedule = () => {
                 hideDialog();
             },
            onError: (errors) => {
-                let errorMessages = 'Gagal membuat jadwal. ';
-                if (errors) {
-                    errorMessages += Object.values(errors).join('; ');
-                }
+                let errorMessages = 'Gagal membuat jadwal: ' + Object.values(errors).join('; ');
                 toast.add({ severity: 'error', summary: 'Gagal', detail: errorMessages, life: 5000 });
             }
         });
@@ -145,11 +136,17 @@ const saveSchedule = () => {
 
 const editSchedule = (schedule) => {
     isEditing.value = true;
-    // Clone object agar tidak reaktif langsung ke tabel sebelum save
+    // Map the nested objects to their IDs for the form
     form.value = { 
-        ...schedule,
-        // Pastikan format tanggal YYYY-MM-DD untuk input type="date"
-        tanggal: schedule.tanggal ? new Date(schedule.tanggal).toISOString().split('T')[0] : ''
+        id: schedule.id,
+        jurusan_id: schedule.jurusan?.id || null,
+        prodi_id: schedule.prodi?.id || null,
+        kelas_id: schedule.kelas?.id || null,
+        ruang_id: schedule.ruang?.id || null,
+        gedung_id: schedule.gedung?.id || null,
+        tanggal: schedule.tanggal ? new Date(schedule.tanggal).toISOString().split('T')[0] : '',
+        waktu_mulai: schedule.waktu_mulai,
+        waktu_selesai: schedule.waktu_selesai,
     };
     scheduleDialog.value = true;
 };
@@ -175,10 +172,8 @@ const formatTanggalIndonesia = (dateString) => {
     if (!dateString) return '-';
     try {
         const date = new Date(dateString);
-        // Fix timezone offset issue simple way
         const userTimezoneOffset = date.getTimezoneOffset() * 60000;
         const adjustedDate = new Date(date.getTime() + userTimezoneOffset);
-        
         const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
         return adjustedDate.toLocaleDateString('id-ID', options);
     } catch (e) {
@@ -186,6 +181,9 @@ const formatTanggalIndonesia = (dateString) => {
     }
 };
 </script>
+...
+// The rest of the file is template, which I will replace separately.
+
 
 <template>
     <Layout>
@@ -219,17 +217,17 @@ const formatTanggalIndonesia = (dateString) => {
                         </div>
                     </template>
 
-                    <Column field="jurusan" header="Jurusan" sortable style="min-width: 200px">
+                    <Column field="jurusan.nama_jurusan" header="Jurusan" sortable style="min-width: 200px">
                         <template #body="{ data }">
-                            <span class="font-semibold text-slate-700">{{ data.jurusan }}</span>
+                            <span class="font-semibold text-slate-700">{{ data.jurusan?.nama_jurusan }}</span>
                         </template>
                     </Column>
 
-                    <Column field="prodi" header="Prodi & Kelas" sortable style="min-width: 200px">
+                    <Column field="prodi.nama_prodi" header="Prodi & Kelas" sortable style="min-width: 200px">
                         <template #body="{ data }">
                             <div class="flex flex-col gap-1">
-                                <span class="text-slate-700">{{ data.prodi }}</span>
-                                <Tag :value="data.kelas" severity="info" class="w-fit" />
+                                <span class="text-slate-700">{{ data.prodi?.nama_prodi }}</span>
+                                <Tag :value="data.kelas?.nama_kelas" severity="info" class="w-fit" />
                             </div>
                         </template>
                     </Column>
@@ -237,8 +235,8 @@ const formatTanggalIndonesia = (dateString) => {
                     <Column header="Lokasi" style="min-width: 150px">
                         <template #body="{ data }">
                             <div class="flex flex-col">
-                                <span class="font-medium text-slate-800">{{ data.tempat }}</span>
-                                <span class="text-xs text-slate-500">{{ data.gedung }}</span>
+                                <span class="font-medium text-slate-800">{{ data.ruang?.nama }}</span>
+                                <span class="text-xs text-slate-500">{{ data.gedung?.nama }}</span>
                             </div>
                         </template>
                     </Column>
@@ -281,41 +279,42 @@ const formatTanggalIndonesia = (dateString) => {
                     <div class="col-span-2">
                         <label class="block text-sm font-medium text-slate-700 mb-1">Jurusan</label>
                         <Dropdown 
-                            v-model="form.jurusan" 
+                            v-model="form.jurusan_id" 
                             :options="props.jurusan" 
-                            optionLabel="nama" 
-                            optionValue="nama" 
+                            optionLabel="nama_jurusan" 
+                            optionValue="id" 
                             placeholder="Pilih Jurusan" 
                             @change="handleJurusanChange"
-                            :class="{'p-invalid': submitted && !form.jurusan}"
+                            :class="{'p-invalid': submitted && !form.jurusan_id}"
                         />
-                        <small class="text-red-500" v-if="submitted && !form.jurusan">Jurusan wajib diisi.</small>
+                        <small class="text-red-500" v-if="submitted && !form.jurusan_id">Jurusan wajib diisi.</small>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Program Studi</label>
                         <Dropdown 
-                            v-model="form.prodi" 
+                            v-model="form.prodi_id" 
                             :options="filteredProdiList" 
-                            optionLabel="nama" 
-                            optionValue="nama" 
+                            optionLabel="nama_prodi" 
+                            optionValue="id" 
                             placeholder="Pilih Prodi" 
-                            :disabled="!form.jurusan"
+                            :disabled="!form.jurusan_id"
                             @change="handleProdiChange"
-                            :class="{'p-invalid': submitted && !form.prodi}"
+                            :class="{'p-invalid': submitted && !form.prodi_id}"
                         />
-                        <small class="text-red-500" v-if="submitted && !form.prodi">Prodi wajib diisi.</small>
+                        <small class="text-red-500" v-if="submitted && !form.prodi_id">Prodi wajib diisi.</small>
                     </div>
 
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Kelas</label>
                         <Dropdown 
-                            v-model="form.kelas" 
+                            v-model="form.kelas_id" 
                             :options="filteredKelasList" 
-                            optionLabel="nama" 
-                            optionValue="nama" 
+                            optionLabel="nama_kelas" 
+                            optionValue="id" 
                             placeholder="Pilih Kelas"
-                            :disabled="!form.prodi"
+                            :disabled="!form.prodi_id"
+                            :class="{'p-invalid': submitted && !form.kelas_id}"
                             editable 
                         />
                          <small class="text-slate-400 text-xs">Bisa ketik manual jika tidak ada di list.</small>
@@ -344,20 +343,20 @@ const formatTanggalIndonesia = (dateString) => {
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Gedung</label>
                         <Dropdown 
-                            v-model="form.gedung"
+                            v-model="form.gedung_id"
                             :options="props.gedung"
-                            optionLabel="nama_gedung"
-                            optionValue="nama_gedung"
+                            optionLabel="nama"
+                            optionValue="id"
                             placeholder="Pilih Gedung"
                         />
                     </div>
                     <div>
                          <label class="block text-sm font-medium text-slate-700 mb-1">Ruangan</label>
                         <Dropdown 
-                            v-model="form.tempat"
+                            v-model="form.ruang_id"
                             :options="props.ruang"
-                            optionLabel="nama_ruang"
-                            optionValue="nama_ruang"
+                            optionLabel="nama"
+                            optionValue="id"
                             placeholder="Pilih Ruang"
                         />
                     </div>
