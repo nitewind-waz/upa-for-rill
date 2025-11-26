@@ -1,45 +1,18 @@
 <script setup>
 import Layout from '@/layouts/AppLayout.vue';
-import { Head, router } from '@inertiajs/vue3';
-import { ref, computed } from 'vue';
-import { format } from 'date-fns';
+import { Head } from '@inertiajs/vue3';
+import { ref } from 'vue';
 
 const props = defineProps({
   berita: { type: Array, default: () => [] },
   acara: { type: Array, default: () => [] },
-  years: { type: Array, default: () => [] },
-  selectedYear: { type: String, default: null },
 });
 
-const searchYear = ref(props.selectedYear || new Date().getFullYear());
+const activeTab = ref('berita');
 
 const getImageUrl = (path, type) => {
   return path ? `/storage/${type}/${path}` : 'https://via.placeholder.com/400x300?text=No+Image';
 };
-
-const allItems = computed(() => {
-    const mappedBerita = props.berita.map(item => ({
-        ...item,
-        type: 'berita',
-        date: item.tanggal,
-    }));
-    const mappedAcara = props.acara.map(item => ({
-        ...item,
-        type: 'acara',
-        date: item.tanggal_acara,
-    }));
-
-    return [...mappedBerita, ...mappedAcara]
-        .sort((a, b) => new Date(b.date) - new Date(a.date));
-});
-
-const filterByYear = () => {
-    router.get(route('home'), { year: searchYear.value }, {
-        preserveState: true,
-        replace: true,
-    });
-};
-
 </script>
 
 <template>
@@ -69,19 +42,19 @@ const filterByYear = () => {
             Pusat layanan bahasa unggulan untuk mendukung civitas akademika Politeknik Negeri Bandung.
           </p>
           <div class="flex flex-col sm:flex-row gap-3 justify-center items-center">
-            <a
+            <Link
               href="/jadwal"
               class="inline-block px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-full font-bold text-sm shadow-lg transition-all hover:-translate-y-1"
             >
               Jadwal Tes EPT
-            </a>
+            </Link>
 
-            <a
-              href="/course"
+            <Link
+              href="/kursus"
               class="inline-block px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/50 rounded-full font-semibold text-sm backdrop-blur-md transition-all hover:-translate-y-1"
             >
               Program Kursus
-            </a>
+            </Link>
           </div>
         </div>
       </section>
@@ -159,40 +132,40 @@ const filterByYear = () => {
                <p class="text-slate-500">Update terbaru seputar kegiatan akademik.</p>
             </div>
 
-            <div class="flex items-center gap-2">
-                <input 
-                    type="number" 
-                    v-model="searchYear"
-                    placeholder="Contoh: 2025"
-                    class="bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-                <button @click="filterByYear" class="px-6 py-2 rounded-lg text-sm font-bold bg-blue-600 text-white shadow-md hover:bg-blue-700 transition-all">
-                    Cari
-                </button>
+            <div class="bg-blue-50 p-1 rounded-xl shadow-sm border border-blue-100 inline-flex">
+              <button
+                @click="activeTab = 'berita'"
+                class="px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300"
+                :class="activeTab === 'berita' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-blue-100 hover:text-blue-600'"
+              >
+                Berita
+              </button>
+              <button
+                @click="activeTab = 'acara'"
+                class="px-6 py-2 rounded-lg text-sm font-bold transition-all duration-300"
+                :class="activeTab === 'acara' ? 'bg-blue-600 text-white shadow-md' : 'text-slate-500 hover:bg-blue-100 hover:text-blue-600'"
+              >
+                Acara
+              </button>
             </div>
           </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div 
-              v-for="item in allItems" 
-              :key="`${item.type}-${item.id}`"
+              v-for="item in (activeTab === 'berita' ? berita : acara)" 
+              :key="item.id"
               class="group bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300 flex flex-col h-full hover:-translate-y-2"
             >
               <div class="relative h-52 overflow-hidden flex-shrink-0">
                 <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors z-10"></div>
                 <img 
-                  :src="getImageUrl(item.gambar, item.type)" 
+                  :src="getImageUrl(item.gambar, activeTab)" 
                   class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
                 />
                 <div class="absolute top-3 left-3 z-20 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-blue-100">
                   <span class="text-xs font-bold text-blue-800 flex items-center gap-1">
                     <i class="pi pi-calendar text-blue-600"></i>
-                    {{ format(new Date(item.date), 'dd MMMM yyyy') }}
-                  </span>
-                </div>
-                 <div class="absolute top-3 right-3 z-20 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-lg shadow-sm border border-blue-100">
-                  <span class="text-xs font-bold uppercase" :class="item.type === 'berita' ? 'text-sky-800' : 'text-amber-800'">
-                    {{ item.type }}
+                    {{ activeTab === 'berita' ? item.tanggal : item.tanggal_acara }}
                   </span>
                 </div>
               </div>
@@ -211,11 +184,11 @@ const filterByYear = () => {
             </div>
           </div>
 
-          <div v-if="allItems.length === 0" class="text-center py-16 bg-blue-50 rounded-2xl border-2 border-dashed border-blue-200">
+          <div v-if="(activeTab === 'berita' ? berita : acara).length === 0" class="text-center py-16 bg-blue-50 rounded-2xl border-2 border-dashed border-blue-200">
             <div class="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-100 mb-3">
                <i class="pi pi-inbox text-3xl text-blue-300"></i>
             </div>
-            <p class="text-slate-500 font-medium">Belum ada berita atau acara untuk tahun {{ selectedYear }}.</p>
+            <p class="text-slate-500 font-medium">Belum ada data yang ditampilkan.</p>
           </div>
 
         </div>

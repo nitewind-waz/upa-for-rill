@@ -167,5 +167,3 @@ const getGreeting = () => {
     </div>
   </AdminLayout>
 </template>
-
-Dashboard.vue

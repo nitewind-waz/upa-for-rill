@@ -101,20 +101,97 @@ const isActive = (url) => {
     </main>
 
     <div class="fixed bottom-8 right-8 z-40">
-      <div class="relative group">
+      <div 
+        class="relative group"
+        @mouseenter="contactVisible = true"
+        @mouseleave="contactVisible = false"
+      >
         <Button
           icon="pi pi-comments" rounded size="large"
-          class="!bg-blue-600 !border-blue-500 shadow-xl hover:scale-110 transition-all duration-300 !w-14 !h-14"
-          @mouseenter="contactVisible = true"
-          @mouseleave="contactVisible = false"
+          class="!bg-blue-600 !border-blue-500 shadow-xl group-hover:scale-110 transition-all duration-300 !w-14 !h-14"
         />
+
+        <transition
+            enter-active-class="transition ease-out duration-200"
+            enter-from-class="transform opacity-0 scale-95"
+            enter-to-class="transform opacity-100 scale-100"
+            leave-active-class="transition ease-in duration-150"
+            leave-from-class="transform opacity-100 scale-100"
+            leave-to-class="transform opacity-0 scale-95"
+        >
+            <div 
+              v-if="contactVisible" 
+              class="absolute bottom-0 right-16 mb-2 w-64 bg-white rounded-xl shadow-2xl p-4 border border-slate-100"
+            >
+                <h4 class="font-bold text-slate-800 text-center mb-4">Hubungi Kami</h4>
+                <div class="space-y-3">
+                    <div class="flex items-center gap-3 p-2 bg-blue-50 text-blue-800 rounded-lg">
+                        <i class="pi pi-envelope text-lg"></i>
+                        <span class="font-medium text-sm">upabahasa@polban.ac.id</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 bg-pink-50 text-pink-800 rounded-lg">
+                        <i class="pi pi-instagram text-lg"></i>
+                        <span class="font-medium text-sm">@upabahasa.polban</span>
+                    </div>
+                    <div class="flex items-center gap-3 p-2 bg-green-50 text-green-800 rounded-lg">
+                        <i class="pi pi-whatsapp text-lg"></i>
+                        <span class="font-medium text-sm">0812-3456-7890</span>
+                    </div>
+                </div>
+            </div>
+        </transition>
       </div>
     </div>
 
     <footer class="bg-slate-900 text-white py-12 mt-auto border-t border-slate-800 relative z-10">
        <div class="container mx-auto px-6 relative">
           <div class="absolute inset-0 opacity-5 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
-          <p class="text-center text-slate-400 text-sm relative z-10">© 2025 UPA Bahasa Politeknik Negeri Bandung.</p>
+          
+          <div class="flex flex-col md:flex-row justify-between items-start gap-8 relative z-10 mb-8 pb-8 border-b border-slate-700">
+            <div class="flex-shrink-0">
+               <div class="flex items-baseline gap-1 text-2xl font-bold tracking-wide mb-2">
+                 <span class="text-white drop-shadow-sm">UPA</span>
+                 <span class="text-orange-300 drop-shadow-sm">BAHASA</span>
+               </div>
+               <p class="text-sm text-slate-400 max-w-sm">Pusat layanan bahasa unggulan untuk mendukung civitas akademika Politeknik Negeri Bandung.</p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-8 md:gap-12 flex-grow">
+               <div>
+                  <h4 class="font-bold text-slate-200 mb-4">Informasi Kontak</h4>
+                  <ul class="space-y-3 text-slate-400 text-sm">
+                     <li class="flex items-center gap-3">
+                        <i class="pi pi-envelope text-blue-400"></i> 
+                        <a href="mailto:upabahasa@polban.ac.id" class="hover:text-white transition-colors">upabahasa@polban.ac.id</a>
+                     </li>
+                     <li class="flex items-center gap-3">
+                        <i class="pi pi-instagram text-pink-400"></i> 
+                        <a href="https://instagram.com/upabahasa.polban" target="_blank" class="hover:text-white transition-colors">@upabahasa.polban</a>
+                     </li>
+                     <li class="flex items-center gap-3">
+                        <i class="pi pi-whatsapp text-green-400"></i> 
+                        <a href="https://wa.me/6281234567890" target="_blank" class="hover:text-white transition-colors">0812-3456-7890</a>
+                     </li>
+                  </ul>
+               </div>
+               
+               <div>
+                  <h4 class="font-bold text-slate-200 mb-4">Akses Cepat</h4>
+                  <ul class="space-y-3 text-slate-400 text-sm">
+                     <li v-for="item in navItems" :key="item.label">
+                        <a :href="item.url" class="hover:text-white transition-colors">{{ item.label }}</a>
+                     </li>
+                  </ul>
+               </div>
+
+               <div>
+                  <h4 class="font-bold text-slate-200 mb-4">Lokasi</h4>
+                  <p class="text-sm text-slate-400 leading-relaxed">Gedung P2T, Lantai 1,<br>Politeknik Negeri Bandung<br>Jl. Gegerkalong Hilir, Bandung</p>
+               </div>
+            </div>
+          </div>
+
+          <p class="text-center text-slate-400 text-sm relative z-10">© {{ new Date().getFullYear() }} UPA Bahasa Politeknik Negeri Bandung. All rights reserved.</p>
        </div>
     </footer>
 
@@ -146,5 +223,6 @@ const isActive = (url) => {
         </a>
       </div>
     </Sidebar>
+
   </div>
 </template>
