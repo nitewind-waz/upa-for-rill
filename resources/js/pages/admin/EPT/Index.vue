@@ -81,7 +81,7 @@ const loadLazyData = (event) => {
         mahasiswa_id: lazyParams.value.mahasiswa_id,
     };
 
-    router.get('/ept', paramsToSend, {
+    router.get('/admin/ept', paramsToSend, {
         preserveState: true,
         preserveScroll: true,
         replace: true,
@@ -106,7 +106,7 @@ const openImportDialog = () => { importDialog.value = true; };
 const hideImportDialog = () => { importDialog.value = false; importForm.reset(); importForm.clearErrors(); };
 
 const submitCreateForm = () => {
-    createForm.post('/ept', {
+    createForm.post('/admin/ept', {
         onSuccess: () => {
             hideCreateDialog();
             toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Data EPT ditambahkan.', life: 3000 });
@@ -126,7 +126,7 @@ const handleImportSelect = (event) => {
 };
 
 const submitImportForm = () => {
-    importForm.post('/ept/import', {
+    importForm.post('/admin/ept/import', {
         onSuccess: () => {
             hideImportDialog();
             toast.add({ severity: 'success', summary: 'Berhasil', detail: 'Data berhasil diimport.', life: 3000 });

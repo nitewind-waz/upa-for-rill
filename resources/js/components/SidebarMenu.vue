@@ -92,17 +92,7 @@
         </template>
 
         <div class="my-4 border-t border-slate-100"></div>
-
-        <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-4 px-2">Lainnya</div>
-        
-        <Link 
-          href="/settings" 
-          class="flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-          :class="{ 'bg-blue-50 text-blue-700 font-semibold': isActive('/settings') }"
-        >
-           <i class="pi pi-cog text-lg text-slate-400 group-hover:text-slate-600"></i>
-           <span class="text-sm font-medium">Settings</span>
-        </Link>
+      
       </div>
 
           <div class="p-4 border-t border-slate-200 bg-slate-50/50">

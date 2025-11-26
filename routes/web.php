@@ -38,9 +38,9 @@ Route::get('/jadwal', [EptScheduleController::class, 'index'])->name('jadwal');
 
 // Hasil EPT (Cek Nilai)
 Route::controller(EptResultPesertaController::class)->prefix('hasil')->name('hasil')->group(function () {
-    Route::get('/', 'index');              // route('hasil')
-    Route::post('/check', 'checkResult')->name('.check'); // route('hasil.check')
-    Route::get('/stats', 'getStats')->name('.stats');     // route('hasil.stats')
+    Route::get('/', 'index');            
+    Route::post('/check', 'checkResult')->name('.check'); 
+    Route::get('/stats', 'getStats')->name('.stats');     
 });
 
 // Pembelajaran (View Mahasiswa)

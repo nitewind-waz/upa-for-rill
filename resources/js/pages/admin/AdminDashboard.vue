@@ -34,7 +34,7 @@ const getGreeting = () => {
          <div class="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
             <div>
                <h1 class="text-3xl font-bold text-slate-800">
-                  {{ getGreeting() }}, <span class="text-blue-600">{{ user.name }}</span>! 👋
+                  {{ getGreeting() }}, <span class="text-blue-600">{{ user.name }}</span>! 
                </h1>
                <p class="text-slate-500 mt-2 max-w-2xl">
                   Ini adalah panel kontrol utama Anda. Pantau statistik kursus, jadwal EPT, dan kelola konten website dengan mudah dari sini.
@@ -122,7 +122,7 @@ const getGreeting = () => {
                <h4 class="font-bold text-blue-800 mb-4 relative z-10">Manajemen Akademik</h4>
                
                <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10">
-                  <Link href="/admin/course/create" class="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all group cursor-pointer">
+                  <Link href="/admin/course" class="flex flex-col items-center justify-center p-4 bg-white rounded-xl shadow-sm hover:shadow-md transition-all group cursor-pointer">
                      <div class="w-10 h-10 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
                         <i class="pi pi-plus"></i>
                      </div>
