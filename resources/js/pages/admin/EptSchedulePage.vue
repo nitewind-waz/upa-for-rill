@@ -21,7 +21,7 @@ import { useConfirm } from "primevue/useconfirm";
 const props = defineProps({
     jadwal: Array,
     jurusan: Array,
-    prodi: Array, // Now a top-level prop
+    prodi: Array,
     kelas: Array,
     gedung: Array,
     ruang: Array,
@@ -104,10 +104,6 @@ const saveSchedule = () => {
     // The validation is now primarily on the backend
     const payload = { ...form.value };
 
-    // Rename ruang_id to tempat for the backend, as the column is likely 'tempat'
-    // but the validation expects 'ruang_id'. Let's align with validation.
-    // The controller validation expects: juruan_id, prodi_id, kelas_id, ruang_id, gedung_id
-    // So the payload is correct as is.
 
     if (isEditing.value) {
         router.put(`/admin/jadwal/${form.value.id}`, payload, {
@@ -116,7 +112,7 @@ const saveSchedule = () => {
                 hideDialog();
             },
             onError: (errors) => {
-                let errorMessages = 'Terjadi kesalahan validasi: ' + Object.values(errors).join('; ');
+                const errorMessages = 'Terjadi kesalahan validasi: ' + Object.values(errors).join('; ');
                 toast.add({ severity: 'error', summary: 'Gagal', detail: errorMessages, life: 5000 });
             }
         });
@@ -127,7 +123,7 @@ const saveSchedule = () => {
                 hideDialog();
             },
            onError: (errors) => {
-                let errorMessages = 'Gagal membuat jadwal: ' + Object.values(errors).join('; ');
+                const errorMessages = 'Gagal membuat jadwal: ' + Object.values(errors).join('; ');
                 toast.add({ severity: 'error', summary: 'Gagal', detail: errorMessages, life: 5000 });
             }
         });
@@ -181,8 +177,6 @@ const formatTanggalIndonesia = (dateString) => {
     }
 };
 </script>
-...
-// The rest of the file is template, which I will replace separately.
 
 
 <template>
@@ -315,9 +309,7 @@ const formatTanggalIndonesia = (dateString) => {
                             placeholder="Pilih Kelas"
                             :disabled="!form.prodi_id"
                             :class="{'p-invalid': submitted && !form.kelas_id}"
-                            editable 
                         />
-                         <small class="text-slate-400 text-xs">Bisa ketik manual jika tidak ada di list.</small>
                     </div>
 
                     <div class="col-span-2">

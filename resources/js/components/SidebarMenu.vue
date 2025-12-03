@@ -144,7 +144,8 @@ const isActive = (path: string): boolean => {
 const menuItems = [
   { label: 'Dashboard', icon: 'pi pi-home', route: '/admin/dashboard' },
   { label: 'Jadwal', icon: 'pi pi-calendar', route: '/admin/jadwal' },
-  { label: 'Nilai EPT', icon: 'pi pi-chart-bar', route: '/admin/ept' }, // Disesuaikan dengan route sebelumnya
+  { label: 'Nilai EPT', icon: 'pi pi-chart-bar', route: '/admin/ept' },
+  { label: 'Print Sertifikat', icon: 'pi pi-print', route: '/admin/certificate' },
   { label: 'Kelola Kursus', icon: 'pi pi-book', route: '/admin/course' },
   { label: 'Kelola Pembelajaran', icon: 'pi pi-book', route: '/admin/pembelajaran' },
   { label: 'Kelola Berita', icon: 'pi pi-megaphone', route: '/admin/berita' },

@@ -37,7 +37,7 @@ class MaterialPembelajaranController extends Controller
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'required|string',
-            'link_pdf' => 'required_without:link_video|nullable|file|mimes:pdf,ppt,pptx|max:2048',
+            'link_pdf' => 'required_without:link_video|nullable|file|mimes:pdf,ppt,pptx|max:10240',
             'link_video' => 'required_without:link_pdf|nullable|url|max:255',
         ]);
 
@@ -51,8 +51,16 @@ class MaterialPembelajaranController extends Controller
         $validated = $validator->validate();
 
         if ($request->hasFile('link_pdf')) {
-            $validated['link_pdf'] = $request->file('link_pdf')->store('pembelajaran/pdf', 'public');
+            $file = $request->file('link_pdf');
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            $folder = $ext === 'pdf'
+                ? 'pembelajaran/pdf'
+                : 'pembelajaran/ppt';
+
+            $validated['link_pdf'] = $file->store($folder, 'public');
         }
+
 
         MaterialPembelajaran::create($validated);
 
@@ -64,7 +72,7 @@ class MaterialPembelajaranController extends Controller
         $validator = Validator::make($request->all(), [
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'required|string',
-            'link_pdf' => 'nullable|file|mimes:pdf,ppt,pptx|max:2048',
+            'link_pdf' => 'nullable|file|mimes:pdf,ppt,pptx|max:10240',
             'link_video' => 'nullable|url|max:255',
             'remove_pdf' => 'nullable|boolean',
         ]);
@@ -91,7 +99,15 @@ class MaterialPembelajaranController extends Controller
             if ($pembelajaran->link_pdf) {
                 Storage::disk('public')->delete($pembelajaran->link_pdf);
             }
-            $pembelajaran->setAttribute('link_pdf', $request->file('link_pdf')->store('pembelajaran/pdf', 'public'));
+
+            $file = $request->file('link_pdf');
+            $ext = strtolower($file->getClientOriginalExtension());
+
+            $folder = $ext === 'pdf'
+                ? 'pembelajaran/pdf'
+                : 'pembelajaran/ppt';
+
+            $pembelajaran->setAttribute('link_pdf', $file->store($folder, 'public'));
         } elseif ($isRemovingPdf) {
             if ($pembelajaran->link_pdf) {
                 Storage::disk('public')->delete($pembelajaran->link_pdf);

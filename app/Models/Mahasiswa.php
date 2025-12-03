@@ -38,8 +38,8 @@ class Mahasiswa extends Model
         return $this->belongsTo(Kelas::class);
     }
 
-    public function eptResults()
+    public function eptScores()
     {
-        return $this->hasMany(EptResult::class);
+        return $this->hasMany(EptResultPesertaMahasiswa::class);
     }
 }

@@ -17,8 +17,9 @@ use App\Http\Controllers\Admin\BeritaController;
 use App\Http\Controllers\Admin\AcaraController;
 use App\Http\Controllers\Admin\EptResultController;
 use App\Http\Controllers\EptScheduleController;
-use App\Http\Controllers\MaterialPembelajaranController; 
-use App\Http\Controllers\MahasiswaPembelajaranController; 
+use App\Http\Controllers\MaterialPembelajaranController;
+use App\Http\Controllers\MahasiswaPembelajaranController;
+use App\Http\Controllers\Admin\CertificateController;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,9 +39,9 @@ Route::get('/jadwal', [EptScheduleController::class, 'index'])->name('jadwal');
 
 // Hasil EPT (Cek Nilai)
 Route::controller(EptResultPesertaController::class)->prefix('hasil')->name('hasil')->group(function () {
-    Route::get('/', 'index');            
-    Route::post('/check', 'checkResult')->name('.check'); 
-    Route::get('/stats', 'getStats')->name('.stats');     
+    Route::get('/', 'index');
+    Route::post('/check', 'checkResult')->name('.check');
+    Route::get('/stats', 'getStats')->name('.stats');
 });
 
 // Pembelajaran (View Mahasiswa)
@@ -69,7 +70,7 @@ Route::prefix('admin')->name('admin.')->group(function () {
     // 2. PROTECTED ADMIN (Sudah Login)
     // ----------------------------------------------------------
     Route::middleware('auth:admin')->group(function () {
-        
+
         // Logout
         Route::post('/logout', [AdminAuthController::class, 'logout'])->name('logout');
 
@@ -104,6 +105,12 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::get('/', 'index')->name('index');    // admin.ept.index
             Route::post('/', 'store')->name('store');   // admin.ept.store
             Route::post('/import', 'import')->name('import'); // admin.ept.import
+        });
+
+        // --- MANAJEMEN SERTIFIKAT EPT ---
+        Route::controller(CertificateController::class)->prefix('certificate')->name('certificate.')->group(function () {
+            Route::get('/', 'index')->name('index');
+            Route::get('/{id}', 'show')->name('show');
         });
 
         // --- MANAJEMEN PEMBELAJARAN (MATERI) ---

@@ -42,7 +42,7 @@ const getFileType = (url: string | null | undefined): 'pdf' | 'ppt' | 'pptx' | n
     if (!url) return null;
     const extension = url.split('.').pop()?.toLowerCase();
     if (extension === 'pdf') return 'pdf';
-    if (extension === 'ppt' || extension === 'pptx') return 'ppt'; // Group ppt and pptx
+    if (extension === 'ppt' || extension === 'pptx') return 'ppt'; 
     return null;
 };
 
@@ -105,9 +105,23 @@ const closeDialog = () => {
 
 const onFileSelect = (event: FileUploadSelectEvent) => {
     const file = event.files[0];
-    if (file) {
-        form.link_pdf = file;
+    if (!file) return;
+
+    const maxSize = 10 * 1024 * 1024;
+
+    if (file.size > maxSize){
+        toast.add({
+            severity: "error",
+            summary: "File terlalu besar!",
+            detail: "Maksimal ukuran PPT/PDF adalah 10 MB.",
+            life: 3000
+        })
+
+        form.link_pdf = null;
+        return;
     }
+
+    form.link_pdf = file;
 };
 
 const saveMaterial = () => {
@@ -404,6 +418,7 @@ const requestRemovePdf = () => {
                             @click="requestRemovePdf"
                         />
                     </div>
+                    <small>Maksimal ukuran PPT/PDF/PPTX adalah 10 MB.</small>
                 </div>
 
                 <div class="text-center text-slate-400 font-bold">ATAU</div>

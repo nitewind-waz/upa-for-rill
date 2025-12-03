@@ -12,7 +12,6 @@ const form = useForm({
 });
 
 const submit = () => {
-    // GANTI route() DENGAN URL STRING MANUAL
     form.post('/admin/login', {
         onFinish: () => form.reset('password'),
     });
@@ -44,7 +43,7 @@ const submit = () => {
 
             <div class="bg-white/80 backdrop-blur-xl border border-white/50 rounded-3xl shadow-2xl p-8">
                 
-                <div class="mb-6">
+                <div class="mb-6 text-center">
                     <h2 class="text-xl font-bold text-slate-800">Selamat Datang Kembali</h2>
                     <p class="text-sm text-slate-500">Silakan masuk untuk mengelola data.</p>
                 </div>
@@ -53,22 +52,27 @@ const submit = () => {
                     
                     <div class="space-y-1.5">
                         <label for="email" class="text-sm font-semibold text-slate-600 ml-1">Email Address</label>
-                        <span class="p-input-icon-left w-full">
-                            <i class="pi pi-envelope z-10 text-slate-400" />
+
+                        <span class="p-input-icon-left w-full block">
+                            <i class="pi pi-envelope text-slate-400"></i>
                             <InputText 
-                                id="email" 
-                                v-model="form.email" 
-                                placeholder="admin@polban.ac.id" 
-                                class="w-full !pl-10 !rounded-xl !border-slate-200 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-100 transition-all"
+                                id="email"
+                                v-model="form.email"
+                                placeholder="admin@polban.ac.id"
+                                class="w-full !rounded-xl !border-slate-200 
+                                    focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-100 transition-all"
                                 :class="{ 'p-invalid': form.errors.email }"
                             />
                         </span>
+
                         <small class="text-red-500 text-xs ml-1" v-if="form.errors.email">{{ form.errors.email }}</small>
                     </div>
 
+
                     <div class="space-y-1.5">
                         <label for="password" class="text-sm font-semibold text-slate-600 ml-1">Password</label>
-                        <span class="p-input-icon-left w-full">
+                        <div class="relative">
+                            <i class="pi pi-lock text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 z-10"></i>
                             <Password 
                                 id="password" 
                                 v-model="form.password" 
@@ -78,12 +82,8 @@ const submit = () => {
                                 inputClass="w-full !pl-10 !rounded-xl !border-slate-200 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-100 transition-all"
                                 class="w-full"
                                 :class="{ 'p-invalid': form.errors.password }"
-                            >
-                                <template #content>
-                                    <i class="pi pi-lock z-10 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-                                </template>
-                            </Password>
-                        </span>
+                            />
+                        </div>
                         <small class="text-red-500 text-xs ml-1" v-if="form.errors.password">{{ form.errors.password }}</small>
                     </div>
 
@@ -116,33 +116,30 @@ const submit = () => {
 
 <style scoped>
 /* Custom Styling untuk Icon di dalam InputText PrimeVue */
+:deep(.p-input-icon-left) {
+    position: relative;
+    display: block;
+}
+
 :deep(.p-input-icon-left > i) {
+    position: absolute;
+    left: 0.75rem;
     top: 50%;
-    margin-top: -0.5rem;
+    transform: translateY(-50%);
+    z-index: 1;
+}
+
+:deep(.p-input-icon-left > .p-inputtext) {
+    padding-left: 2.5rem;
 }
 
 /* Override PrimeVue Password Styling agar width 100% */
 :deep(.p-password) {
     width: 100%;
-}
-:deep(.p-password-input) {
-    width: 100%;
-    padding-left: 2.5rem !important; /* Space for icon */
+    display: block;
 }
 
-/* Icon lock manual positioning karena keterbatasan slot primevue password */
-:deep(.p-password) {
-    position: relative;
-}
-:deep(.p-password:before) {
-    content: "\e94c"; /* Kode icon pi-lock */
-    font-family: 'primeicons';
-    position: absolute;
-    left: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    z-index: 10;
-    font-size: 1rem;
+:deep(.p-password-input) {
+    width: 100%;
 }
 </style>

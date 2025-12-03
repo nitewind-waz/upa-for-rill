@@ -156,7 +156,6 @@ const getStatusSeverity = (tanggal, waktuSelesai) => {
                 style="background-image: url('/banner-upa.jpeg');" 
             ></div>
             <div class="absolute inset-0 bg-slate-900/50 z-10"></div>
-            <div class="absolute inset-0 bg-gradient-to-b from-transparent to-slate-50 z-20"></div>
 
             <div class="relative z-30 container mx-auto px-6 text-center pt-8">
                 <span class="inline-block py-1 px-3 rounded-full bg-blue-600/30 border border-blue-400/50 text-blue-50 text-xs font-bold mb-4 backdrop-blur-md uppercase tracking-widest">

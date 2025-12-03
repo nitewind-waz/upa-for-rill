@@ -29,7 +29,6 @@ const props = defineProps({
 });
 
 // --- STATE MANAGEMENT (YANG DIPERBAIKI) ---
-// Kita pakai "?." (Optional Chaining) agar kalau data belum ada, tidak error
 const lazyParams = ref({
     first: 0,
     rows: props.results?.per_page || 20,
@@ -58,7 +57,7 @@ const importForm = useForm({
     file: null,
 });
 
-// Gunakan ?. juga di sini untuk keamanan
+
 const resultsData = computed(() => props.results?.data || []);
 
 // --- LOGIKA UTAMA ---
@@ -117,6 +116,10 @@ const submitCreateForm = () => {
     });
 };
 
+const downloadTemplate = () =>{
+    window.location.href = '/storage/template/template_nilai_ept.xlsx'
+};
+
 const handleFileChange = (event) => {
     createForm.sertifikat_pdf = event.target.files[0];
 };
@@ -157,6 +160,13 @@ const submitImportForm = () => {
                     </p>
                 </div>
                 <div class="flex gap-2">
+                    <Button
+                        label="Download Template Excel Nilai EPT"
+                        icon="pi pi-download"
+                        severity="secondary"
+                        @click="downloadTemplate"
+                        outlined
+                    />  
                     <Button 
                         label="Import Excel" 
                         icon="pi pi-file-excel" 
