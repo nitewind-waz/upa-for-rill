@@ -29,7 +29,7 @@ return new class extends Migration
             $table->foreignId('gedung_id')
                   ->constrained('gedungs')
                   ->onDelete('cascade');
-
+            $table->timestamps();
         });
     }
 

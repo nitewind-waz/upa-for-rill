@@ -5,7 +5,8 @@ import Layout from '@/layouts/AdminLayout.vue';
 import { Head } from '@inertiajs/vue3';
 
 const props = defineProps({
-    jadwal: Array, 
+    jadwal: Array,
+    jadwalPublik: Array, 
     jurusan: Array,
     prodi: Array,
     kelas: Array,
@@ -28,6 +29,16 @@ const form = ref({
     tanggal: '',
     waktu_mulai: '',
     waktu_selesai: ''
+})
+
+const formPublik = ref({
+    ruang_id: '',
+    gedung_id: '',
+    tanggal: '',
+    jam_mulai: '',
+    jam_selesai: '',
+    nik: '',
+    nama_lengkap: '',
 })
 
 // Memfilter daftar prodi berdasarkan jurusan yang dipilih
@@ -67,6 +78,18 @@ const resetForm = () => {
     isEditing.value = false;
 };
 
+const resetFormPublik = () => {
+    formPublik.value = {
+        ruang_id: '',
+        gedung_id: '',
+        tanggal: '',
+        jam_mulai: '',
+        jam_selesai: '',
+        nik: '',
+        nama_lengkap: '',
+    }
+}
+
 //Helpers
 const formatTanggalIndonesia = (dateString) => {
     if (!dateString) return '-';
@@ -97,6 +120,18 @@ const addSchedule = () => {
         },
         onError: (errors) => {
             console.error('Validation Errors:', errors);
+        }
+    })
+}
+
+const addPublicSchedule = () => {
+    router.post('/admin/jadwal-publik', formPublik.value, {
+        preserveScroll: true,
+        onSuccess: () => {
+            resetFormPublik();
+        },
+        onError: (errors) => {
+            console.error('Validation Errors:', errors)
         }
     })
 }
@@ -143,6 +178,14 @@ const editSchedule = (schedule) => {
 const deleteSchedule = (id) => {
     if (confirm('Yakin ingin menghapus jadwal ini?')) {
         router.delete(`/admin/jadwal/${id}`, {
+            preserveScroll: true,
+        })
+    }
+}
+
+const deletePublicSchedule = (id) => {
+    if (confirm('Yakin ingin menghapus jadwal publik ini?')) {
+        router.delete(`/admin/jadwal-publik/${id}`, {
             preserveScroll: true,
         })
     }
@@ -266,6 +309,59 @@ const deleteSchedule = (id) => {
                     </div>
                 </form>
             </div>
+            
+            <div class="bg-white shadow rounded p-6">
+                <h2 class="text-xl font-semibold mb-4">Tambah Jadwal Publik</h2>
+                <form @submit.prevent="addPublicSchedule" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="ruang" class="text-gray-700 font-medium">Tempat (Ruang)</label>
+                        <select id="ruang" v-model="formPublik.ruang_id" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.ruang_id}">
+                            <option value="" disabled>Pilih Ruang</option>
+                            <option v-for="r in props.ruang" :key="r.id" :value="r.id">{{ r.nama }}</option>
+                        </select>
+                        <div v-if="errors.ruang_id" class="text-red-500 text-sm">{{ errors.ruang_id }}</div>
+                    </div>
+                     <div>
+                        <label for="gedung" class="text-gray-700 font-medium">Gedung</label>
+                        <select id="gedung" v-model="formPublik.gedung_id" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.gedung_id}">
+                           <option value="" disabled>Pilih Gedung</option>
+                           <option v-for="g in props.gedung" :key="g.id" :value="g.id">{{ g.nama }}</option>
+                        </select>
+                        <div v-if="errors.gedung_id" class="text-red-500 text-sm">{{ errors.gedung_id }}</div>
+                    </div>
+                     <div>
+                        <label class="text-gray-700 font-medium">Tanggal</label>
+                        <input type="date" v-model="formPublik.tanggal" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.tanggal}">
+                        <div v-if="errors.tanggal" class="text-red-500 text-sm">{{ errors.tanggal }}</div>
+                    </div>
+                     <div>
+                        <label class="text-gray-700 font-medium">Waktu Mulai (00:00)</label>
+                        <input type="time" v-model="formPublik.jam_mulai" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.jam_mulai}" step="60"> 
+                        <div v-if="errors.jam_mulai" class="text-red-500 text-sm">{{ errors.jam_mulai }}</div>
+                    </div>
+                     <div>
+                        <label class="text-gray-700 font-medium">Waktu Selesai (00:00)</label>
+                        <input type="time" v-model="formPublik.jam_selesai" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.jam_selesai}" step="60">
+                        <div v-if="errors.jam_selesai" class="text-red-500 text-sm">{{ errors.jam_selesai }}</div>
+                    </div>
+                    <div>
+                        <label class="text-gray-700 font-medium">NIK</label>
+                        <input type="text" v-model="formPublik.nik" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.nik}">
+                        <div v-if="errors.nik" class="text-red-500 text-sm">{{ errors.nik }}</div>
+                    </div>
+                    <div>
+                        <label class="text-gray-700 font-medium">Nama Lengkap</label>
+                        <input type="text" v-model="formPublik.nama_lengkap" class="mt-1 border p-2 w-full rounded" :class="{'border-red-500': errors.nama_lengkap}">
+                        <div v-if="errors.nama_lengkap" class="text-red-500 text-sm">{{ errors.nama_lengkap }}</div>
+                    </div>
+                    <div class="md:col-span-3 mt-4 flex space-x-3">
+                        <button type="submit"
+                            class="bg-blue-600 text-white hover:bg-blue-700 px-5 py-2 rounded shadow-md transition duration-150">
+                            Tambah Jadwal Publik
+                        </button>
+                    </div>
+                </form>
+            </div>
 
             <div class="bg-white shadow rounded p-6">
                 <h2 class="text-xl font-semibold mb-4">Daftar Jadwal</h2>
@@ -318,6 +414,47 @@ const deleteSchedule = (id) => {
                         <tr v-if="props.jadwal.length === 0">
                             <td colspan="8" class="p-4 text-center text-gray-500">
                                 Belum ada jadwal.
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="bg-white shadow rounded p-6">
+                <h2 class="text-xl font-semibold mb-4">Daftar Jadwal Publik</h2>
+                <table class="w-full border rounded overflow-hidden">
+                    <thead class="bg-gray-100">
+                        <tr>
+                            <th class="p-3 text-left">NIK</th>
+                            <th class="p-3 text-left">Nama Lengkap</th>
+                            <th class="p-3 text-left">Ruang</th>
+                            <th class="p-3 text-left">Gedung</th>
+                            <th class="p-3 text-left">Tanggal</th>
+                            <th class="p-3 text-left">Waktu</th>
+                            <th class="p-3 text-center">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="jp in props.jadwalPublik" :key="jp.id" class="border-t hover:bg-gray-50">
+                            <td class="p-3">{{ jp.publik?.nik || '-' }}</td>
+                            <td class="p-3">{{ jp.publik?.nama_lengkap || '-' }}</td>
+                            <td class="p-3">{{ jp.ruang?.nama || '-' }}</td>
+                            <td class="p-3">{{ jp.gedung?.nama || '-' }}</td>
+                            <td class="p-3">{{ formatTanggalIndonesia(jp.tanggal) }}</td>
+                            <td class="p-3 whitespace-nowrap">
+                                {{ jp.jam_mulai?.substring(0, 5) || '00:00' }} - 
+                                {{ jp.jam_selesai?.substring(0, 5) || '00:00' }}
+                            </td>
+                            <td class="p-3 flex justify-center space-x-2">
+                                <button @click="deletePublicSchedule(jp.id)"
+                                        class="bg-red-600 text-white text-sm px-3 py-1 rounded shadow-md hover:bg-red-700 transition duration-150">
+                                    Hapus
+                                </button>
+                            </td>
+                        </tr>
+                        <tr v-if="props.jadwalPublik.length === 0">
+                            <td colspan="7" class="p-4 text-center text-gray-500">
+                                Belum ada jadwal publik.
                             </td>
                         </tr>
                     </tbody>

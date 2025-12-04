@@ -11,6 +11,7 @@ use App\Http\Controllers\EptResultMahasiswaController;
 use App\Http\Controllers\PublicCourseController;
 
 use App\Http\Controllers\EptScheduleController;
+use App\Http\Controllers\Admin\JadwalTestPublikController;
 
 Route::get('/', function () {
     return Inertia::render('mahasiswa/Dashboard');
@@ -46,6 +47,9 @@ Route::post('/hasil/stats', [EptResultMahasiswaController::class, 'getStats'])->
     // hapus 
     Route::delete('/jadwal/{id}', [EptScheduleController::class, 'destroy'])
         ->name('admin.jadwal.delete');
+    
+    Route::post('/jadwal-publik', [JadwalTestPublikController::class, 'store'])->name('admin.jadwal-publik.store');
+    Route::delete('/jadwal-publik/{id}', [JadwalTestPublikController::class, 'destroy'])->name('admin.jadwal-publik.destroy');
 });
 
 

@@ -8,6 +8,7 @@ use App\Models\Jurusan;
 use App\Models\Kelas;
 use App\Models\Prodi;
 use App\Models\Ruang;
+use App\Models\JadwalTestPublik;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
@@ -17,8 +18,11 @@ class EptScheduleController extends Controller
     public function index()
     {
         $jadwals = EptSchedule::with(['jurusan', 'prodi', 'kelas', 'ruang', 'gedung'])->orderBy('tanggal', 'asc')->get();
+        $jadwalPublik = JadwalTestPublik::with(['ruang', 'gedung', 'publik'])->orderBy('tanggal', 'asc')->get(); // Fetch public schedules with relationships
+
         return Inertia::render('mahasiswa/Jadwal', [
             'jadwal' => $jadwals,
+            'jadwalPublik' => $jadwalPublik, // Pass public schedules to the view
             'jurusan' => Jurusan::all(),
             'prodi' => Prodi::all(),
         ]);
@@ -28,9 +32,11 @@ class EptScheduleController extends Controller
     public function adminIndex()
     {
         $jadwals = EptSchedule::with(['jurusan', 'prodi', 'kelas', 'ruang', 'gedung'])->orderBy('tanggal', 'asc')->get();
+        $jadwalPublik = JadwalTestPublik::with(['ruang', 'gedung', 'publik'])->orderBy('tanggal', 'asc')->get(); // Eager-load the 'publik' relationship
 
         return Inertia::render('admin/EptSchedulePage', [
             'jadwal' => $jadwals,
+            'jadwalPublik' => $jadwalPublik,
             'jurusan' => Jurusan::all(),
             'prodi' => Prodi::all(),
             'kelas' => Kelas::all(),

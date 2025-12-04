@@ -12,6 +12,10 @@ const props = defineProps({
         type: Array,
         default: () => [],
     },
+    jadwalPublik: { // Add the new prop
+        type: Array,
+        default: () => [],
+    },
     jurusan: {
         type: Array,
         default: () => [],
@@ -32,11 +36,6 @@ const jadwalMahasiswaComputed = computed(() => {
 });
 
 
-const jadwalPublikComputed = computed(() => {
-    return props.jadwal.filter(j => j.prodi_id === null && j.kelas_id === null);
-});
-
-
 const prodiList = computed(() => {
     if (!selectedJurusan.value) {
         return [];
@@ -47,7 +46,7 @@ const prodiList = computed(() => {
 
 const filteredJadwal = computed(() => {
   if (selectedUserType.value === 'publik') {
-    return jadwalPublikComputed.value;
+    return props.jadwalPublik; // Use the new prop directly
   } else if (selectedUserType.value === 'mahasiswa') {
     if (selectedProdi.value) {
       return jadwalMahasiswaComputed.value.filter(
@@ -62,7 +61,7 @@ let polling = null;
 
 onMounted(() => {
   polling = setInterval(() => {
-    router.reload({ only: ['jadwal'] });
+    router.reload({ only: ['jadwal', 'jadwalPublik'] }); // Reload both props
   }, 20000); // refresh data dalam 20 detik
 });
 
@@ -165,7 +164,8 @@ onUnmounted(() => {
       <div class="container mx-auto px-4">
         <Card>
           <template #content>
-            <DataTable :value="filteredJadwal" stripedRows responsiveLayout="scroll">
+            <!-- Table for Mahasiswa -->
+            <DataTable v-if="selectedUserType === 'mahasiswa'" :value="filteredJadwal" stripedRows responsiveLayout="scroll">
               <Column header="Prodi" sortable>
                   <template #body="slotProps">
                       {{ slotProps.data.prodi?.nama_prodi || '-' }}
@@ -189,6 +189,33 @@ onUnmounted(() => {
               <Column field="tanggal" header="Tanggal" sortable />
               <Column field="waktu_mulai" header="Waktu Mulai" sortable />
               <Column field="waktu_selesai" header="Waktu Selesai" sortable />
+            </DataTable>
+
+            <!-- Table for Publik -->
+            <DataTable v-if="selectedUserType === 'publik'" :value="filteredJadwal" stripedRows responsiveLayout="scroll">
+               <Column header="NIK" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.publik?.nik || '-' }}
+                  </template>
+              </Column>
+              <Column header="Nama Lengkap" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.publik?.nama_lengkap || '-' }}
+                  </template>
+              </Column>
+              <Column header="Tempat" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.ruang?.nama || '-' }}
+                  </template>
+              </Column>
+              <Column header="Gedung" sortable>
+                  <template #body="slotProps">
+                      {{ slotProps.data.gedung?.nama || '-' }}
+                  </template>
+              </Column>
+              <Column field="tanggal" header="Tanggal" sortable />
+              <Column field="jam_mulai" header="Waktu Mulai" sortable />
+              <Column field="jam_selesai" header="Waktu Selesai" sortable />
             </DataTable>
           </template>
         </Card>

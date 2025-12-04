@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             EptResultMahasiswaSeeder::class,
             GedungSeeder::class,
             RuangSeeder::class,
+            PublikSeeder::class,
         ]);
     }
 }

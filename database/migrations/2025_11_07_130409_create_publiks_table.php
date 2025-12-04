@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('nik', 20);
             $table->string('nama_lengkap');
+            $table->timestamps();
         });
     }
 
