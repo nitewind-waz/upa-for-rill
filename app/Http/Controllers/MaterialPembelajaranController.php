@@ -34,21 +34,19 @@ class MaterialPembelajaranController extends Controller
      */
     public function store(Request $request)
     {
-        $validator = Validator::make($request->all(), [
+        $validated = $request->validate([
             'judul' => 'required|string|max:255',
             'deskripsi_singkat' => 'required|string',
-            'link_pdf' => 'required_without:link_video|nullable|file|mimes:pdf,ppt,pptx|max:10240',
-            'link_video' => 'required_without:link_pdf|nullable|url|max:255',
+            'link_pdf' => 'nullable|file|mimes:pdf,ppt,pptx|max:10240',
+            'link_video' => 'nullable|url|max:255',
         ]);
 
-        $validator->after(function ($validator) use ($request) {
-            if ($request->hasFile('link_pdf') && !empty($request->link_video)) {
-                $validator->errors()->add('link_video', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
-                $validator->errors()->add('link_pdf', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
-            }
-        });
-
-        $validated = $validator->validate();
+        if (!$request->hasFile('link_pdf') && empty($validated['link_video'])) {
+            throw \Illuminate\Validation\ValidationException::withMessages([
+                'link_pdf' => 'Setidaknya harus ada file atau tautan video.',
+                'link_video' => 'Setidaknya harus ada file atau tautan video.',
+            ]);
+        }
 
         if ($request->hasFile('link_pdf')) {
             $file = $request->file('link_pdf');
@@ -76,13 +74,6 @@ class MaterialPembelajaranController extends Controller
             'link_video' => 'nullable|url|max:255',
             'remove_pdf' => 'nullable|boolean',
         ]);
-
-        $validator->after(function ($validator) use ($request) {
-            if ($request->hasFile('link_pdf') && !empty($request->link_video)) {
-                $validator->errors()->add('link_video', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
-                $validator->errors()->add('link_pdf', 'Tidak dapat mengunggah file dan menyertakan tautan video secara bersamaan.');
-            }
-        });
 
         $validated = $validator->validate();
 

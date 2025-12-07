@@ -17,6 +17,7 @@ return new class extends Migration
             $table->integer('structure');
             $table->integer('reading');
             $table->integer('total_score');
+            $table->string('semester');
 
             // jangan buat kolom level di sini
             $table->string('sertifikat_pdf')->nullable();

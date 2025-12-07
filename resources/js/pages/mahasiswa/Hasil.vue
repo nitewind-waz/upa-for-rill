@@ -1,4 +1,5 @@
 <script setup>
+    
 import { ref, watch } from 'vue'
 import { router, useForm } from '@inertiajs/vue3'
 import Layout from '@/layouts/AppLayout.vue'
@@ -6,6 +7,7 @@ import { Head } from '@inertiajs/vue3'
 import Button from 'primevue/button'
 import Chart from 'primevue/chart'
 import MultiSelect from 'primevue/multiselect'
+import Dropdown from 'primevue/dropdown'
 import ProgressSpinner from 'primevue/progressspinner'
 import { debounce } from 'lodash';
 import Tag from 'primevue/tag';
@@ -20,7 +22,9 @@ const props = defineProps({
   mahasiswa: { type: Object, default: null },
   stats: { type: Object, default: null },
   errors: { type: Object, default: () => ({}) },
-  input: { type: Object, default: () => ({}) }
+  input: { type: Object, default: () => ({}) },
+  availableYears: { type: Array, default: () => [] },
+  availableSemesters: { type: Array, default: () => [] },
 })
 
 const activeTab = ref(props.activeTab)
@@ -35,6 +39,8 @@ const form = useForm({
 const selectedJurusan = ref(props.input?.level === 'jurusan' ? props.input.ids : [])
 const selectedProdi = ref(props.input?.level === 'prodi' ? props.input.ids : [])
 const selectedKelas = ref(props.input?.level === 'kelas' ? props.input.ids : [])
+const selectedTahun = ref(props.input?.tahun || null)
+const selectedSemester = ref(props.input?.semester || null)
 
 // === Fungsi Individu ===
 const handleCheckResult = () => {
@@ -45,13 +51,13 @@ const handleCheckResult = () => {
 }
 
 // === Ambil Statistik ===
-const getStats = debounce((level, ids) => {
+const getStats = debounce((level, ids, tahun, semester) => {
   if (ids.length === 0) {
     router.get('/hasil', { tab: level.charAt(0).toUpperCase() + level.slice(1) }, { preserveState: true, preserveScroll: true, replace: true });
     return;
   }
   
-  router.get('/hasil/stats', { level, ids }, {
+  router.get('/hasil/stats', { level, ids, tahun, semester }, {
     preserveState: true,
     preserveScroll: true,
     replace: true
@@ -59,9 +65,16 @@ const getStats = debounce((level, ids) => {
 }, 300);
 
 // Watchers auto update
-watch(selectedJurusan, (newVal) => getStats('jurusan', newVal))
-watch(selectedProdi, (newVal) => getStats('prodi', newVal))
-watch(selectedKelas, (newVal) => getStats('kelas', newVal))
+watch([selectedJurusan, selectedTahun, selectedSemester], ([jurusan, tahun, semester]) => {
+    if (activeTab.value === 'Jurusan') getStats('jurusan', jurusan, tahun, semester);
+});
+watch([selectedProdi, selectedTahun, selectedSemester], ([prodi, tahun, semester]) => {
+    if (activeTab.value === 'Prodi') getStats('prodi', prodi, tahun, semester);
+});
+watch([selectedKelas, selectedTahun, selectedSemester], ([kelas, tahun, semester]) => {
+    if (activeTab.value === 'Kelas') getStats('kelas', kelas, tahun, semester);
+});
+
 
 // === Navigasi Tab ===
 const loadTabData = (tab) => {
@@ -145,21 +158,32 @@ const barChartOptions = {
                             <h2 class="text-xl font-bold text-slate-800 mb-2">Filter Data {{ activeTab }}</h2>
                             <p class="text-slate-500 text-sm mb-6">Pilih satu atau lebih {{ activeTab.toLowerCase() }} untuk melihat statistik.</p>
                             
-                            <div class="max-w-xl mx-auto">
+                            <div class="max-w-xl mx-auto space-y-4">
                                 <div v-if="activeTab === 'Jurusan'">
                                     <MultiSelect v-model="selectedJurusan" :options="props.jurusan" optionLabel="nama_jurusan" optionValue="id" placeholder="Pilih Jurusan..." class="w-full multiselect-custom" :showSelectAll="false" display="chip" />
-                                    <Button v-if="selectedJurusan.length" label="Reset Filter" icon="pi pi-times" severity="secondary" text class="mt-2 !text-red-500" @click="selectedJurusan = []" />
                                 </div>
 
                                 <div v-else-if="activeTab === 'Prodi'">
                                     <MultiSelect v-model="selectedProdi" :options="props.prodi" optionLabel="nama_prodi" optionValue="id" placeholder="Pilih Prodi..." class="w-full multiselect-custom" :showSelectAll="false" display="chip" />
-                                    <Button v-if="selectedProdi.length" label="Reset Filter" icon="pi pi-times" severity="secondary" text class="mt-2 !text-red-500" @click="selectedProdi = []" />
                                 </div>
 
                                 <div v-else-if="activeTab === 'Kelas'">
                                     <MultiSelect v-model="selectedKelas" :options="props.kelas" optionLabel="nama_kelas" optionValue="id" placeholder="Pilih Kelas..." class="w-full multiselect-custom" :showSelectAll="false" display="chip" />
-                                    <Button v-if="selectedKelas.length" label="Reset Filter" icon="pi pi-times" severity="secondary" text class="mt-2 !text-red-500" @click="selectedKelas = []" />
                                 </div>
+
+                                <!-- Year and Semester Filters -->
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-left">
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Tahun</label>
+                                        <Dropdown v-model="selectedTahun" :options="props.availableYears" placeholder="Semua Tahun" class="w-full" showClear />
+                                    </div>
+                                    <div>
+                                        <label class="block text-xs font-bold text-slate-500 uppercase mb-1 ml-1">Semester</label>
+                                        <Dropdown v-model="selectedSemester" :options="props.availableSemesters" placeholder="Semua Semester" class="w-full" showClear />
+                                    </div>
+                                </div>
+                                
+                                <Button v-if="selectedJurusan.length || selectedProdi.length || selectedKelas.length || selectedTahun || selectedSemester" label="Reset Semua Filter" icon="pi pi-times" severity="secondary" text class="mt-2 !text-red-500" @click="selectedJurusan = []; selectedProdi = []; selectedKelas = []; selectedTahun = null; selectedSemester = null;" />
                             </div>
                         </div>
 

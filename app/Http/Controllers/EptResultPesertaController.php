@@ -109,6 +109,8 @@ class EptResultPesertaController extends Controller
             'level' => 'required|in:jurusan,prodi,kelas',
             'ids'   => 'sometimes|array',
             'ids.*' => 'integer',
+            'tahun' => 'nullable|integer',
+            'semester' => 'nullable|integer|in:1,3,5',
         ]);
 
         $level = $validated['level'];
@@ -144,11 +146,18 @@ class EptResultPesertaController extends Controller
 
                 if ($mahasiswaIds->isEmpty()) continue;
 
-                // Kumpulkan semua ID mahasiswa
                 $allMahasiswaIds = $allMahasiswaIds->merge($mahasiswaIds);
 
-                $stats = EptResultPesertaMahasiswa::whereIn('mahasiswa_id', $mahasiswaIds)
-                    ->select(
+                $query = EptResultPesertaMahasiswa::whereIn('mahasiswa_id', $mahasiswaIds);
+
+                if ($request->filled('tahun')) {
+                    $query->where('tahun', $validated['tahun']);
+                }
+                if ($request->filled('semester')) {
+                    $query->where('semester', $validated['semester']);
+                }
+
+                $stats = $query->select(
                         DB::raw('MAX(listening) as max_listening'),
                         DB::raw('MIN(listening) as min_listening'),
                         DB::raw('AVG(listening) as avg_listening'),
@@ -187,12 +196,19 @@ class EptResultPesertaController extends Controller
             }
         }
 
-        // --- Data untuk Pie Chart Distribusi Level ---
         $levelPieChart = null;
         if ($allMahasiswaIds->isNotEmpty()) {
-            $levelDistribution = DB::table('ept_results_mahasiswa')
-                ->whereIn('mahasiswa_id', $allMahasiswaIds->unique())
-                ->select('level', DB::raw('count(*) as total'))
+            $levelDistributionQuery = DB::table('ept_results_mahasiswa')
+                ->whereIn('mahasiswa_id', $allMahasiswaIds->unique());
+
+            if ($request->filled('tahun')) {
+                $levelDistributionQuery->where('tahun', $validated['tahun']);
+            }
+            if ($request->filled('semester')) {
+                $levelDistributionQuery->where('semester', $validated['semester']);
+            }
+
+            $levelDistribution = $levelDistributionQuery->select('level', DB::raw('count(*) as total'))
                 ->groupBy('level')
                 ->get();
 
@@ -215,8 +231,11 @@ class EptResultPesertaController extends Controller
                 'datasets' => $datasets,
             ],
             'detailed_statistics' => $detailed_statistics,
-            'levelPieChart' => $levelPieChart, // Tambahkan data pie chart ke response
+            'levelPieChart' => $levelPieChart,
         ];
+        
+        $availableYears = EptResultPesertaMahasiswa::select('tahun')->distinct()->orderBy('tahun', 'desc')->pluck('tahun');
+        $availableSemesters = [1, 3, 5];
 
         return Inertia::render('mahasiswa/Hasil', [
             'jurusan' => Jurusan::all(),
@@ -224,7 +243,9 @@ class EptResultPesertaController extends Controller
             'kelas' => Kelas::all(),
             'activeTab' => ucfirst($level),
             'stats' => $responseData,
-            'input' => $request->only(['level', 'ids']),
+            'availableYears' => $availableYears,
+            'availableSemesters' => $availableSemesters,
+            'input' => $request->only(['level', 'ids', 'tahun', 'semester']),
         ]);
     }
 }

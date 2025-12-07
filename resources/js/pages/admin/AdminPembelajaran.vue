@@ -30,7 +30,7 @@ const toast = useToast();
 
 const showDialog = ref(false);
 const showDeleteDialog = ref(false);
-const activeFilter = ref<'All' | 'Video' | 'PDF' | 'PPT'>('All');
+const activeFilter = ref<'All' | 'Video' | 'PDF' | 'PPT' | 'Link + PDF' | 'Link + PPT'>('All');
 
 const getYoutubeThumbnailUrl = (videoUrl: string | null) => {
     if (!videoUrl) return '';
@@ -48,19 +48,24 @@ const getFileType = (url: string | null | undefined): 'pdf' | 'ppt' | 'pptx' | n
 
 const filteredMaterials = computed(() => {
     const allMaterials = props.materialPembelajarans || [];
-    if (activeFilter.value === 'All') {
-        return allMaterials;
+    const filter = activeFilter.value;
+
+    switch (filter) {
+        case 'All':
+            return allMaterials;
+        case 'Video':
+            return allMaterials.filter(m => m.link_video);
+        case 'PDF':
+            return allMaterials.filter(m => getFileType(m.link_pdf_url) === 'pdf');
+        case 'PPT':
+            return allMaterials.filter(m => getFileType(m.link_pdf_url) === 'ppt');
+        case 'Link + PDF':
+            return allMaterials.filter(m => m.link_video && getFileType(m.link_pdf_url) === 'pdf');
+        case 'Link + PPT':
+            return allMaterials.filter(m => m.link_video && getFileType(m.link_pdf_url) === 'ppt');
+        default:
+            return [];
     }
-    if (activeFilter.value === 'Video') {
-        return allMaterials.filter(m => m.link_video);
-    }
-    if (activeFilter.value === 'PDF') {
-        return allMaterials.filter(m => getFileType(m.link_pdf_url) === 'pdf');
-    }
-    if (activeFilter.value === 'PPT') {
-        return allMaterials.filter(m => getFileType(m.link_pdf_url) === 'ppt');
-    }
-    return [];
 });
 
 
@@ -259,6 +264,22 @@ const requestRemovePdf = () => {
                 icon="pi pi-file"
                 class="transition-all"
             />
+            <Button
+                @click="activeFilter = 'Link + PDF'"
+                :outlined="activeFilter !== 'Link + PDF'"
+                severity="info"
+                label="Link + PDF"
+                icon="pi pi-link"
+                class="transition-all"
+            />
+            <Button
+                @click="activeFilter = 'Link + PPT'"
+                :outlined="activeFilter !== 'Link + PPT'"
+                severity="warning"
+                label="Link + PPT"
+                icon="pi pi-link"
+                class="transition-all"
+            />
         </div>
 
         <!-- Empty State -->
@@ -285,8 +306,16 @@ const requestRemovePdf = () => {
                             alt="Video thumbnail"
                         />
                         <div class="absolute inset-0 bg-black/30"></div>
-                        <div class="absolute top-3 right-3 bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
-                            <i class="pi pi-youtube"></i> VIDEO
+                        <div class="absolute top-3 right-3 flex flex-col gap-2">
+                            <div class="bg-red-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
+                                <i class="pi pi-youtube"></i> VIDEO
+                            </div>
+                             <div v-if="getFileType(item.link_pdf_url) === 'pdf'" class="bg-red-500 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
+                                <i class="pi pi-file-pdf"></i> PDF
+                            </div>
+                            <div v-else-if="getFileType(item.link_pdf_url) === 'ppt'" class="bg-orange-500 text-white px-3 py-1 rounded-lg text-xs font-bold shadow-lg flex items-center gap-1.5">
+                                <i class="pi pi-file"></i> PPT
+                            </div>
                         </div>
                     </template>
                     <!-- PDF Preview -->
@@ -389,7 +418,7 @@ const requestRemovePdf = () => {
 
                 <div class="border-t border-slate-200 my-2"></div>
                 
-                 <p class="text-sm text-center text-slate-500 -mt-2 mb-2">Pilih salah satu: unggah file ATAU masukkan link video.</p>
+                 <p class="text-sm text-center text-slate-500 -mt-2 mb-2">Anda dapat mengunggah file dan/atau memasukkan tautan video.</p>
 
                 <div>
                     <label class="block mb-2 font-semibold text-slate-700">Upload File (PDF/PPT/PPTX)</label>
@@ -402,7 +431,6 @@ const requestRemovePdf = () => {
                         :chooseLabel="form.link_pdf ? form.link_pdf.name : 'Pilih File'"
                         class="w-full"
                         :class="{ 'p-invalid': form.errors.link_pdf }"
-                        :disabled="!!material.link_video"
                     />
                     <InputError :message="form.errors.link_pdf" class="mt-1"/>
                     <div v-if="!form.link_pdf && material.link_pdf_url" class="mt-3 text-slate-600 flex items-center justify-between p-3 bg-slate-50 rounded-lg border">
@@ -421,8 +449,6 @@ const requestRemovePdf = () => {
                     <small>Maksimal ukuran PPT/PDF/PPTX adalah 10 MB.</small>
                 </div>
 
-                <div class="text-center text-slate-400 font-bold">ATAU</div>
-
                 <div>
                     <label for="link_video" class="block mb-2 font-semibold text-slate-700">Link Video YouTube</label>
                     <InputText
@@ -431,7 +457,6 @@ const requestRemovePdf = () => {
                         placeholder="Contoh: https://www.youtube.com/watch?v=..."
                         class="w-full"
                         :class="{ 'p-invalid': form.errors.link_video }"
-                        :disabled="!!form.link_pdf || !!material.link_pdf_url"
                     />
                     <InputError :message="form.errors.link_video" class="mt-1" />
                 </div>

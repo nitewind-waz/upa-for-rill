@@ -41,6 +41,15 @@ const filteredMateris = computed(() => {
         if (filterJenis.value === 'PDF') {
             return materi.link_pdf && materi.file_type === 'pdf'; 
         }
+
+        if (filterJenis.value === 'Link + PDF') {
+            return materi.link_video && materi.link_pdf && materi.file_type === 'pdf';
+        }
+
+        if (filterJenis.value === 'Link + PPT') {
+            return materi.link_video && materi.link_pdf && (materi.file_type === 'ppt' || materi.file_type === 'pptx');
+        }
+
         return false;
     });
 });
@@ -118,6 +127,26 @@ const closeModal = () => {
                     >
                         PDF
                     </button>
+                    <button
+                        @click="setFilter('Link + PDF')"
+                        :class="{
+                            'bg-blue-600 text-white shadow-md': filterJenis === 'Link + PDF', 
+                            'text-slate-500 hover:text-blue-600 hover:bg-blue-100': filterJenis !== 'Link + PDF'
+                        }"
+                        class="py-2 px-4 md:px-5 rounded-lg font-bold transition-all duration-200 text-xs md:text-sm"
+                    >
+                        Link + PDF
+                    </button>
+                    <button
+                        @click="setFilter('Link + PPT')"
+                        :class="{
+                            'bg-blue-600 text-white shadow-md': filterJenis === 'Link + PPT', 
+                            'text-slate-500 hover:text-blue-600 hover:bg-blue-100': filterJenis !== 'Link + PPT'
+                        }"
+                        class="py-2 px-4 md:px-5 rounded-lg font-bold transition-all duration-200 text-xs md:text-sm"
+                    >
+                        Link + PPT
+                    </button>
                 </div>
             </div>
             
@@ -132,9 +161,9 @@ const closeModal = () => {
                         @click="filterJenis !== 'Video' && openModal(materi)"
                     >
                         <div class="h-32 md:h-48 flex items-center justify-center relative"
-                             :class="filterJenis === 'Video' ? 'bg-gray-900' : (filterJenis === 'PDF' ? 'bg-gradient-to-br from-red-100 via-red-200 to-red-300' : 'bg-gradient-to-br from-orange-100 via-orange-200 to-yellow-200')">
-                            <template v-if="filterJenis === 'Video'">
-                                <div v-if="materi.link_video" class="w-full h-full">
+                             :class="['Video', 'Link + PDF', 'Link + PPT'].includes(filterJenis) ? 'bg-gray-900' : (filterJenis === 'PDF' ? 'bg-gradient-to-br from-red-100 via-red-200 to-red-300' : 'bg-gradient-to-br from-orange-100 via-orange-200 to-yellow-200')">
+                            <template v-if="['Video', 'Link + PDF', 'Link + PPT'].includes(filterJenis)">
+                                <div v-if="materi.link_video" class="w-full h-full relative">
                                     <iframe 
                                         v-if="getYouTubeEmbedUrl(materi.link_video)"
                                         :src="getYouTubeEmbedUrl(materi.link_video)" 
@@ -147,6 +176,11 @@ const closeModal = () => {
                                         <svg class="w-8 h-8 md:w-12 md:h-12 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
                                         <p class="text-[10px] md:text-xs text-white mt-1 md:mt-2">Video tidak dapat dimuat</p>
                                     </div>
+                                    <!-- Badges for combined types -->
+                                    <div v-if="materi.link_pdf" class="absolute top-2 right-2 flex gap-1">
+                                        <span class="bg-red-600 text-white px-2 py-1 rounded-md text-[8px] font-bold" v-if="materi.file_type === 'pdf'">PDF</span>
+                                        <span class="bg-orange-600 text-white px-2 py-1 rounded-md text-[8px] font-bold" v-if="materi.file_type === 'ppt' || materi.file_type === 'pptx'">PPT</span>
+                                    </div>
                                 </div>
                                 <div v-else class="text-gray-500 text-center p-2 md:p-4 w-full h-full flex flex-col justify-center items-center">
                                     <svg class="w-8 h-8 md:w-12 md:h-12 text-red-500" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"></path></svg>
@@ -155,6 +189,7 @@ const closeModal = () => {
                             </template>
                             <template v-else>
                                 <div class="relative w-full h-full flex flex-col justify-center items-center overflow-hidden">
+                                     <!-- No video icon needed here anymore -->
                                     <!-- Pattern Background -->
                                     <div class="absolute inset-0 opacity-10">
                                         <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -167,27 +202,22 @@ const closeModal = () => {
                                         </svg>
                                     </div>
                                     
-                                    <!-- Document Illustration - Scaled for mobile -->
+                                    <!-- Document Illustration -->
                                     <div class="relative z-10">
                                         <div class="relative">
-                                            <!-- Back paper -->
                                             <div class="absolute -top-1 -right-1 md:-top-2 md:-right-2 w-12 h-16 md:w-20 md:h-24 bg-gray-700 rounded-sm transform rotate-3"></div>
-                                            <!-- Middle paper -->
                                             <div class="absolute -top-0.5 -right-0.5 md:-top-1 md:-right-1 w-12 h-16 md:w-20 md:h-24 bg-gray-600 rounded-sm transform rotate-2"></div>
-                                            <!-- Front paper -->
                                             <div class="relative w-12 h-16 md:w-20 md:h-24 bg-white rounded-sm shadow-lg p-1 md:p-2 flex flex-col">
-                                                <!-- Document lines -->
                                                 <div class="space-y-0.5 md:space-y-1.5 mb-auto">
                                                     <div class="h-0.5 md:h-1 bg-gray-300 rounded w-full"></div>
                                                     <div class="h-0.5 md:h-1 bg-gray-300 rounded w-4/5"></div>
                                                     <div class="h-0.5 md:h-1 bg-gray-300 rounded w-full"></div>
                                                     <div class="h-0.5 md:h-1 bg-gray-300 rounded w-3/5"></div>
                                                 </div>
-                                                <!-- File type badge -->
                                                 <div class="mt-auto">
-                                                    <span :class="filterJenis === 'PPT' ? 'bg-orange-500' : 'bg-red-500'" 
+                                                    <span :class="['PPT', 'Link + PPT'].includes(filterJenis) ? 'bg-orange-500' : 'bg-red-500'" 
                                                           class="text-white text-[6px] md:text-[8px] font-bold px-1 md:px-1.5 py-0.5 rounded">
-                                                        {{ filterJenis }}
+                                                        {{ ['PPT', 'Link + PPT'].includes(filterJenis) ? 'PPT' : 'PDF' }}
                                                     </span>
                                                 </div>
                                             </div>
@@ -203,7 +233,7 @@ const closeModal = () => {
                             <div>
                                 <h3 class="text-xs md:text-base font-bold mb-1 line-clamp-2">{{ materi.judul }}</h3>
                                 <p class="text-[10px] md:text-xs text-gray-500 mb-1 md:mb-2 line-clamp-1">
-                                    {{ filterJenis === 'PPT' ? 'Presentasi' : 'Dokumen PDF' }}
+                                    {{ ['PPT', 'Link + PPT'].includes(filterJenis) ? 'Presentasi' : 'Dokumen PDF' }}
                                 </p>
                                 <p class="text-xs md:text-sm text-gray-600 line-clamp-2 mb-2 md:mb-3">{{ materi.deskripsi_singkat }}</p>
                             </div>
@@ -235,7 +265,7 @@ const closeModal = () => {
                     </div>
                     
                     <div v-if="filteredMateris.length === 0" class="col-span-full text-center py-10 text-gray-500 text-sm md:text-base">
-                        Tidak ada materi {{ filterJenis === 'Video' ? 'Video' : filterJenis }} yang tersedia saat ini.
+                        Tidak ada materi {{ ['Video', 'Link + PDF', 'Link + PPT'].includes(filterJenis) ? 'Video' : (['PPT'].includes(filterJenis) ? 'Presentasi' : 'Dokumen PDF') }} yang tersedia saat ini.
                     </div>
                 </div>
             </div>
@@ -328,16 +358,29 @@ const closeModal = () => {
                         {{ selectedMateri?.deskripsi_singkat }}
                     </p>
                     
-                    <a 
-                        v-if="selectedMateri?.link_pdf_url"
-                        :href="selectedMateri?.link_pdf_url" 
-                        target="_blank" 
-                        class="inline-flex items-center bg-green-500 text-white font-bold py-2 px-6 md:px-8 rounded-lg hover:bg-green-600 transition duration-200 shadow-md text-sm md:text-base"
-                        @click="closeModal"
-                    >
-                        Download
-                    </a>
-                    <p v-else class="text-xs md:text-sm text-gray-500">File tidak tersedia untuk diunduh.</p>
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                        <a 
+                            v-if="selectedMateri?.link_pdf_url"
+                            :href="selectedMateri?.link_pdf_url" 
+                            target="_blank" 
+                            class="inline-flex items-center justify-center bg-green-500 text-white font-bold py-2 px-6 md:px-8 rounded-lg hover:bg-green-600 transition duration-200 shadow-md text-sm md:text-base"
+                            @click="closeModal"
+                        >
+                            Download
+                        </a>
+                        <a 
+                            v-if="selectedMateri?.link_video"
+                            :href="selectedMateri.link_video" 
+                            target="_blank" 
+                            class="inline-flex items-center justify-center bg-red-600 text-white font-bold py-2 px-6 md:px-8 rounded-lg hover:bg-red-700 transition duration-200 shadow-md text-sm md:text-base"
+                            @click="closeModal"
+                        >
+                            Tonton Video
+                        </a>
+                    </div>
+                    <p v-if="!selectedMateri?.link_pdf_url && !selectedMateri?.link_video" class="text-xs md:text-sm text-gray-500 mt-4">
+                        Tidak ada file atau video yang tersedia.
+                    </p>
                 </div>
             </div>
         </div>
