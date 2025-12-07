@@ -59,7 +59,7 @@ class EptResultPesertaController extends Controller
             // Fetch Mahasiswa EPT results
             $results = EptResultPesertaMahasiswa::where('mahasiswa_id', $mahasiswa->id)
                 ->orderByDesc('tahun')
-                ->get(['tahun', 'listening', 'structure', 'reading', 'total_score', 'sertifikat_pdf', 'level']);
+                ->get(['tahun', 'semester', 'listening', 'structure', 'reading', 'total_score', 'sertifikat_pdf', 'level']);
 
             $user_info = [
                 'nim' => $mahasiswa->nim, // nim for Mahasiswa

@@ -291,8 +291,8 @@ const barChartOptions = {
                                     
                                     <div class="bg-blue-600 p-4 text-white text-center relative overflow-hidden">
                                         <div class="absolute top-0 left-0 w-full h-full bg-white opacity-10 transform -skew-x-12"></div>
-                                        <p class="text-xs uppercase tracking-widest opacity-80 mb-1">Tahun Tes</p>
-                                        <p class="text-2xl font-bold">{{ r.tahun }}</p>
+                                        <p class="text-xs uppercase tracking-widest opacity-80 mb-1">Tahun & Semester</p>
+                                        <p class="text-2xl font-bold">{{ r.tahun }} / {{ r.semester }}</p>
                                     </div>
 
                                     <div class="p-6 space-y-4">
