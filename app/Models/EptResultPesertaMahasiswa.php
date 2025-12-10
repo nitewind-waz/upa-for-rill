@@ -14,7 +14,8 @@ class EptResultPesertaMahasiswa extends Model
 
     protected $fillable = [
         'mahasiswa_id',
-        'tahun',          // Sesuai dengan $table->year()
+        'tahun',
+        'semester',          // Sesuai dengan $table->year()
         'listening',
         'structure',
         'reading',
