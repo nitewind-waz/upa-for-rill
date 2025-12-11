@@ -104,6 +104,8 @@ Route::prefix('admin')->name('admin.')->group(function () {
         Route::controller(EptResultController::class)->prefix('ept')->name('ept.')->group(function () {
             Route::get('/', 'index')->name('index'); 
             Route::post('/', 'store')->name('store');  
+            Route::put('/{id}', 'update')->name('update'); 
+            Route::delete('/{id}', 'destroy')->name('destroy');
             Route::post('/import', 'import')->name('import'); 
             Route::get('/template', 'downloadTemplate')->name('template');
         });

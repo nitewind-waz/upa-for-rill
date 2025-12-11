@@ -76,6 +76,56 @@ class EptResultController extends Controller
         return redirect()->back()->with('success', 'Data EPT berhasil ditambahkan.');
     }
 
+    public function update(Request $request, $id)
+    {
+        $eptResult = EptResultPesertaMahasiswa::findOrFail($id);
+
+        $rules = [
+            'mahasiswa_id' => 'required|exists:mahasiswas,id', // Sesuaikan nama tabel mahasiswa
+            'tahun'        => 'required|numeric',
+            'listening'    => 'required|numeric',
+            'structure'    => 'required|numeric',
+            'reading'      => 'required|numeric',
+            'total_score'  => 'required|numeric',
+        ];
+
+        // Validasi file hanya jika ada upload baru
+        if ($request->hasFile('sertifikat_pdf')) {
+            $rules['sertifikat_pdf'] = 'nullable|mimes:pdf|max:2048';
+        }
+
+        $validated = $request->validate($rules);
+
+        // Handle File Upload
+        if ($request->hasFile('sertifikat_pdf')) {
+            // Hapus file lama jika ada
+            if ($eptResult->sertifikat_pdf && Storage::disk('public')->exists($eptResult->sertifikat_pdf)) {
+                Storage::disk('public')->delete($eptResult->sertifikat_pdf);
+            }
+            // Simpan file baru
+            $validated['sertifikat_pdf'] = $request->file('sertifikat_pdf')->store('sertifikat_ept', 'public');
+        }
+
+        $eptResult->update($validated);
+
+        return redirect()->back()->with('success', 'Data EPT berhasil diperbarui!');
+    }
+
+    // DELETE
+    public function destroy($id)
+    {
+        $eptResult = EptResultPesertaMahasiswa::findOrFail($id);
+
+        // Hapus file sertifikat jika ada
+        if ($eptResult->sertifikat_pdf && Storage::disk('public')->exists($eptResult->sertifikat_pdf)) {
+            Storage::disk('public')->delete($eptResult->sertifikat_pdf);
+        }
+
+        $eptResult->delete();
+
+        return redirect()->back()->with('success', 'Data EPT berhasil dihapus!');
+    }
+
     /**
      * Method untuk Import Excel
      */
