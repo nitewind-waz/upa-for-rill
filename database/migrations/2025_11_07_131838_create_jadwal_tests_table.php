@@ -18,7 +18,7 @@ return new class extends Migration
             $table->date('tanggal');
             $table->time('jam_mulai');
             $table->time('jam_selesai');
-
+            $table->foreign('publik_id')->references('id')->on('publiks')->onDelete('cascade');
             // --- Kumpulan Foreign Key (Identifying Relationships) ---
             // 3. Relasi 'Menggunakan' ke Ruang
             $table->foreignId('ruang_id')

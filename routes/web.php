@@ -100,6 +100,13 @@ Route::prefix('admin')->name('admin.')->group(function () {
             Route::delete('/{id}', 'destroy')->name('delete'); // admin.jadwal.delete
         });
 
+        // --- MANAJEMEN JADWAL EPT PUBLIK (menggunakan JadwalPublik Model) ---
+        Route::controller(EptScheduleController::class)->prefix('jadwal-publik')->name('jadwal-publik.')->group(function () {
+            Route::post('/', 'storePublik')->name('store');
+            Route::put('/{id}', 'updatePublik')->name('update');
+            Route::delete('/{id}', 'destroyPublik')->name('delete');
+        });
+
         // --- MANAJEMEN HASIL EPT (RESULT) ---
         Route::controller(EptResultController::class)->prefix('ept')->name('ept.')->group(function () {
             Route::get('/', 'index')->name('index');    // admin.ept.index

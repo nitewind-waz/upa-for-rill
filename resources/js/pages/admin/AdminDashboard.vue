@@ -155,9 +155,13 @@ const getGreeting = () => {
                <p class="text-sm text-slate-300 mb-4 opacity-90 leading-relaxed">
                   Download panduan penggunaan dashboard admin untuk memahami semua fitur yang tersedia.
                </p>
-               <button class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 rounded-lg text-sm font-semibold transition-colors flex items-center justify-center gap-2">
+               <a href="/storage/template/pandaun_admin_upa.pdf" 
+                  class="w-full py-2.5 bg-white/10 hover:bg-white/20 border border-white/20 
+                        rounded-lg text-sm font-semibold transition-colors flex items-center 
+                        justify-center gap-2"
+                  download>
                   <i class="pi pi-download"></i> Unduh Panduan PDF
-               </button>
+               </a>
             </div>
 
          </div>
