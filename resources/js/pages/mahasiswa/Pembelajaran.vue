@@ -3,6 +3,7 @@ import { Head } from '@inertiajs/vue3';
 import { ref, computed } from 'vue';
 import AppLayout from '../../layouts/AppLayout.vue'; 
 import getYouTubeID from 'get-youtube-id';
+import Dialog from 'primevue/dialog';
 
 // Fungsi untuk embed URL YouTube
 const getYouTubeEmbedUrl = (url) => {
@@ -78,11 +79,8 @@ const closeModal = () => {
             <div class="absolute inset-0 bg-slate-900/50 z-10"></div>
 
             <div class="relative z-30 container mx-auto px-6 text-center flex flex-col justify-center h-full pt-4">
-                <span class="inline-block py-1 px-2 rounded-full bg-blue-600/30 border border-blue-400/50 text-blue-50 text-xs font-bold mb-4 backdrop-blur-md uppercase tracking-widest">
-                    Materi Belajar
-                </span>
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-3">
-                    Pembelajaran Bahasa
+                    Materi Pembelajaran
                 </h1>
                 <p class="text-base md:text-lg text-white/90 max-w-2xl mx-auto mb-6 font-medium leading-relaxed drop-shadow-md">
                     Akses berbagai jenis materi pembelajaran untuk meningkatkan kemampuan bahasa Anda.
@@ -150,13 +148,12 @@ const closeModal = () => {
                 </div>
             </div>
             
-            <!-- Cards Grid - Horizontal Scroll on Mobile -->
-            <div class="overflow-x-auto pb-4 -mx-4 px-4 md:overflow-visible">
-                <div class="flex md:grid md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8">
+            <!-- Cards Grid - Responsive -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
                     <div 
                         v-for="materi in filteredMateris" 
                         :key="materi.id" 
-                        class="w-[calc(33.333%-10.67px)] min-w-[calc(33.333%-10.67px)] md:w-auto md:min-w-0 flex-shrink-0 bg-white rounded-2xl shadow-lg overflow-hidden transition duration-300 border border-gray-100 flex flex-col"
+                        class="bg-white rounded-2xl shadow-lg overflow-hidden transition duration-300 border border-gray-100 flex flex-col"
                         :class="{'cursor-pointer hover:shadow-xl hover:-translate-y-2': filterJenis !== 'Video'}" 
                         @click="filterJenis !== 'Video' && openModal(materi)"
                     >
@@ -268,24 +265,30 @@ const closeModal = () => {
                         Tidak ada materi {{ ['Video', 'Link + PDF', 'Link + PPT'].includes(filterJenis) ? 'Video' : (['PPT'].includes(filterJenis) ? 'Presentasi' : 'Dokumen PDF') }} yang tersedia saat ini.
                     </div>
                 </div>
-            </div>
-            
         </div>
 
-        <!-- Modal -->
-        <div v-if="showModal" class="fixed inset-0 z-50 overflow-y-auto bg-black/50 backdrop-blur-sm flex justify-center items-center p-4" @click.self="closeModal">
-            <div class="bg-white rounded-lg w-full max-w-sm shadow-2xl transform transition-all duration-300 scale-100" @click.stop>
+        <!-- Modal Dialog -->
+        <Dialog
+            v-model:visible="showModal"
+            modal
+            :draggable="false"
+            :dismissableMask="true"
+            :style="{ width: '90vw', maxWidth: '500px' }"
+            :contentStyle="{ padding: 0 }"
+            :showHeader="false" 
+            class="custom-modal-pembelajaran"
+        >
+            <div v-if="selectedMateri" class="bg-white rounded-lg w-full shadow-2xl transform transition-all duration-300 scale-100 flex flex-col max-h-[90vh] my-auto">
                 
-                <div class="flex justify-end p-3">
+                <div class="flex justify-between items-center p-3 flex-shrink-0">
+                    <h2 class="font-bold text-base md:text-lg text-gray-800">{{ selectedMateri.judul }}</h2>
                     <button @click="closeModal" class="text-gray-400 hover:text-gray-600">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                     </button>
                 </div>
                 
-                <div class="px-4 md:px-6 pb-4 md:pb-6 text-center">
-                    <p class="font-bold text-base md:text-lg mb-4 text-gray-800">{{ selectedMateri?.judul }}</p>
-                    
-                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 h-40 md:h-48 mb-4 flex items-center justify-center rounded-lg mx-auto w-11/12 relative overflow-hidden">
+                <div class="px-4 md:px-6 pb-4 md:pb-6 text-center flex flex-col flex-1 overflow-hidden">
+                    <div class="bg-gradient-to-br from-gray-50 to-gray-100 border-2 border-gray-200 h-40 md:h-48 mb-4 flex items-center justify-center rounded-lg mx-auto w-11/12 relative overflow-hidden flex-shrink-0">
                         <!-- Decorative background pattern -->
                         <div class="absolute inset-0 opacity-5">
                             <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
@@ -354,14 +357,16 @@ const closeModal = () => {
                         </div>
                     </div>
                     
-                    <p class="text-xs md:text-sm text-gray-600 mb-4 md:mb-6 text-left px-2 md:px-4">
-                        {{ selectedMateri?.deskripsi_singkat }}
-                    </p>
+                    <div class="overflow-y-auto flex-1 mb-4 md:mb-6 px-2 md:px-4">
+                        <p class="text-xs md:text-sm text-gray-600 text-left">
+                            {{ selectedMateri.deskripsi_singkat }}
+                        </p>
+                    </div>
                     
-                    <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <div class="flex flex-col sm:flex-row gap-3 justify-center flex-shrink-0">
                         <a 
-                            v-if="selectedMateri?.link_pdf_url"
-                            :href="selectedMateri?.link_pdf_url" 
+                            v-if="selectedMateri.link_pdf_url"
+                            :href="selectedMateri.link_pdf_url" 
                             target="_blank" 
                             class="inline-flex items-center justify-center bg-green-500 text-white font-bold py-2 px-6 md:px-8 rounded-lg hover:bg-green-600 transition duration-200 shadow-md text-sm md:text-base"
                             @click="closeModal"
@@ -369,7 +374,7 @@ const closeModal = () => {
                             Download
                         </a>
                         <a 
-                            v-if="selectedMateri?.link_video"
+                            v-if="selectedMateri.link_video"
                             :href="selectedMateri.link_video" 
                             target="_blank" 
                             class="inline-flex items-center justify-center bg-red-600 text-white font-bold py-2 px-6 md:px-8 rounded-lg hover:bg-red-700 transition duration-200 shadow-md text-sm md:text-base"
@@ -378,13 +383,12 @@ const closeModal = () => {
                             Tonton Video
                         </a>
                     </div>
-                    <p v-if="!selectedMateri?.link_pdf_url && !selectedMateri?.link_video" class="text-xs md:text-sm text-gray-500 mt-4">
+                    <p v-if="!selectedMateri.link_pdf_url && !selectedMateri.link_video" class="text-xs md:text-sm text-gray-500 mt-4">
                         Tidak ada file atau video yang tersedia.
                     </p>
                 </div>
             </div>
-        </div>
-
+        </Dialog>
     </AppLayout>
 </template>
 
@@ -406,5 +410,28 @@ const closeModal = () => {
 
 .overflow-x-auto::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Custom scrollbar untuk deskripsi di modal */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 6px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 10px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+:deep(.custom-modal-pembelajaran .p-dialog-content) {
+    padding: 0 !important;
 }
 </style>

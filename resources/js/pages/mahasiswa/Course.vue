@@ -89,9 +89,6 @@ const getTagSeverity = (jenis) => {
                 <div class="absolute inset-0 bg-slate-900/50 z-10"></div>
 
                 <div class="relative z-30 container mx-auto px-6 text-center pt-8">
-                    <span class="inline-block py-1 px-3 rounded-full bg-blue-600/30 border border-blue-400/50 text-blue-50 text-xs font-bold mb-4 backdrop-blur-md uppercase tracking-widest">
-                        Layanan Akademik
-                    </span>
                     <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-3">
                         Program Kursus Bahasa
                     </h1>
@@ -123,12 +120,12 @@ const getTagSeverity = (jenis) => {
                     </div>
 
                     <!-- Cards Grid - Horizontal Scroll on Mobile -->
-                    <div class="overflow-x-auto pb-4 -mx-6 px-6 md:overflow-visible">
-                        <div class="flex md:grid md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-8">
+                    <div>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             <div
                                 v-for="course in filteredCourses"
                                 :key="course.id"
-                                class="w-[calc(33.333%-10.67px)] min-w-[calc(33.333%-10.67px)] md:w-auto md:min-w-0 flex-shrink-0 group bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full"
+                                class="group bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300 hover:-translate-y-2 flex flex-col h-full"
                             >
                                 <div class="relative h-40 md:h-52 overflow-hidden flex-shrink-0">
                                     <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors z-10"></div>

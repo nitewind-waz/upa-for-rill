@@ -30,11 +30,6 @@ const getImageUrl = (path, type) => {
         <div class="absolute inset-0 bg-slate-900/50 z-10"></div>
 
         <div class="relative z-30 container mx-auto px-6 text-center flex flex-col justify-center h-full pt-4">
-          <div class="mb-4">
-             <span class="py-1.5 px-4 rounded-full bg-white/10 border border-white/30 text-white text-xs font-bold backdrop-blur-md uppercase tracking-widest shadow-lg">
-               Official Website
-             </span>
-          </div>
           <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-3 leading-tight drop-shadow-lg">
             <span class="text-blue-200">Selamat Datang!</span>
           </h1>
@@ -50,7 +45,7 @@ const getImageUrl = (path, type) => {
             </Link>
 
             <Link
-              href="/kursus"
+              href="/course"
               class="inline-block px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white border border-white/50 rounded-full font-semibold text-sm backdrop-blur-md transition-all hover:-translate-y-1"
             >
               Program Kursus
@@ -158,39 +153,37 @@ const getImageUrl = (path, type) => {
             </div>
           </div>
 
-          <!-- Cards Grid - Horizontal Scroll on Mobile -->
-          <div class="overflow-x-auto pb-4 -mx-6 px-6 md:overflow-visible">
-            <div class="flex md:grid md:grid-cols-3 gap-4 md:gap-8">
-              <div 
-                v-for="item in (activeTab === 'berita' ? berita : acara)" 
-                :key="item.id"
-                class="w-[calc(33.333%-10.67px)] min-w-[calc(33.333%-10.67px)] md:w-auto md:min-w-0 flex-shrink-0 group bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300 flex flex-col h-full hover:-translate-y-2"
-              >
-                <div class="relative h-40 md:h-52 overflow-hidden flex-shrink-0">
-                  <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors z-10"></div>
-                  <img 
-                    :src="getImageUrl(item.gambar, activeTab)" 
-                    class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
-                  />
-                  <div class="absolute top-2 left-2 md:top-3 md:left-3 z-20 bg-white/90 backdrop-blur-sm px-2 py-0.5 md:px-3 md:py-1 rounded-lg shadow-sm border border-blue-100">
-                    <span class="text-[10px] md:text-xs font-bold text-blue-800 flex items-center gap-1">
-                      <i class="pi pi-calendar text-blue-600 text-[10px] md:text-xs"></i>
-                      <span class="hidden sm:inline">{{ activeTab === 'berita' ? item.tanggal : item.tanggal_acara }}</span>
-                      <span class="sm:hidden">{{ (activeTab === 'berita' ? item.tanggal : item.tanggal_acara).slice(0, 10) }}</span>
-                    </span>
-                  </div>
+          <!-- Cards Grid - Responsive -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            <div
+              v-for="item in (activeTab === 'berita' ? berita : acara)"
+              :key="item.id"
+              class="group bg-blue-50 rounded-2xl border border-blue-100 overflow-hidden hover:shadow-xl hover:shadow-blue-200/50 transition-all duration-300 flex flex-col h-full hover:-translate-y-2"
+            >
+              <div class="relative h-40 md:h-52 overflow-hidden flex-shrink-0">
+                <div class="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors z-10"></div>
+                <img
+                  :src="getImageUrl(item.gambar, activeTab)"
+                  class="w-full h-full object-cover transform group-hover:scale-110 transition-transform duration-700"
+                />
+                <div class="absolute top-2 left-2 md:top-3 md:left-3 z-20 bg-white/90 backdrop-blur-sm px-2 py-0.5 md:px-3 md:py-1 rounded-lg shadow-sm border border-blue-100">
+                  <span class="text-[10px] md:text-xs font-bold text-blue-800 flex items-center gap-1">
+                    <i class="pi pi-calendar text-blue-600 text-[10px] md:text-xs"></i>
+                    <span class="hidden sm:inline">{{ activeTab === 'berita' ? item.tanggal : item.tanggal_acara }}</span>
+                    <span class="sm:hidden">{{ (activeTab === 'berita' ? item.tanggal : item.tanggal_acara).slice(0, 10) }}</span>
+                  </span>
                 </div>
+              </div>
 
-                <div class="p-4 md:p-6 flex flex-col flex-1">
-                  <h3 class="text-sm md:text-lg font-bold text-slate-800 mb-2 md:mb-3 line-clamp-2 group-hover:text-blue-600 transition-colors">
-                    {{ item.judul }}
-                  </h3>
-                  
-                  <div class="flex-1">
-                    <p class="text-slate-500 text-xs md:text-sm leading-relaxed line-clamp-3 mb-2 md:mb-4">
-                      {{ item.deskripsi_singkat }}
-                    </p>
-                  </div>
+              <div class="p-4 md:p-6 flex flex-col flex-1">
+                <h3 class="text-sm md:text-lg font-bold text-slate-800 mb-2 md:mb-3 group-hover:text-blue-600 transition-colors">
+                  {{ item.judul }}
+                </h3>
+
+                <div class="flex-1">
+                  <p class="text-slate-500 text-xs md:text-sm leading-relaxed mb-2 md:mb-4">
+                    {{ item.deskripsi_singkat }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -210,24 +203,3 @@ const getImageUrl = (path, type) => {
     </div>
   </Layout>
 </template>
-
-<style scoped>
-/* Custom scrollbar untuk horizontal scroll di mobile */
-.overflow-x-auto::-webkit-scrollbar {
-  height: 8px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-track {
-  background: #f1f5f9;
-  border-radius: 10px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 10px;
-}
-
-.overflow-x-auto::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
-}
-</style>

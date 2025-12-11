@@ -120,9 +120,6 @@ const barChartOptions = {
             <div class="absolute inset-0 bg-slate-900/50 z-10"></div>
 
             <div class="relative z-30 container mx-auto px-6 text-center pt-8">
-                <span class="inline-block py-1 px-3 rounded-full bg-blue-600/30 border border-blue-400/50 text-blue-50 text-xs font-bold mb-4 backdrop-blur-md uppercase tracking-widest">
-                    Laporan Akademik
-                </span>
                 <h1 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight drop-shadow-lg mb-3">
                     Hasil Tes EPT
                 </h1>
@@ -136,12 +133,12 @@ const barChartOptions = {
             <div class="container mx-auto px-6">
                 
                 <div class="flex justify-center mb-12">
-                    <div class="bg-blue-50 p-1.5 rounded-xl shadow-lg border border-blue-100 inline-flex flex-wrap justify-center gap-1">
+                    <div class="bg-blue-50 p-1.5 rounded-xl shadow-lg border border-blue-100 inline-flex flex-nowrap justify-center gap-1 w-full">
                         <button
                             v-for="tab in ['Jurusan','Prodi','Kelas','Individu']"
                             :key="tab"
                             @click="loadTabData(tab)"
-                            class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300"
+                            class="px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 flex-1"
                             :class="activeTab === tab 
                                 ? 'bg-blue-600 text-white shadow-md transform scale-105' 
                                 : 'text-slate-500 hover:text-blue-600 hover:bg-blue-100'"

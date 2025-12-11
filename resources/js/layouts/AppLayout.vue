@@ -64,7 +64,7 @@ const isActive = (url) => {
             </div>
           </div>
 
-          <div class="hidden md:flex items-center gap-1 absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          <div class="hidden md:flex items-center gap-1 ml-auto">
             <a
               v-for="item in navItems"
               :key="item.label"
@@ -186,7 +186,7 @@ const isActive = (url) => {
 
                <div>
                   <h4 class="font-bold text-slate-200 mb-4">Lokasi</h4>
-                  <p class="text-sm text-slate-400 leading-relaxed">Gedung P2T, Lantai 1,<br>Politeknik Negeri Bandung<br>Jl. Gegerkalong Hilir, Bandung</p>
+                  <p class="text-sm text-slate-400 leading-relaxed">Gedung H, Lantai 2,<br>Politeknik Negeri Bandung<br>Jl. Gegerkalong Hilir, Bandung</p>
                </div>
             </div>
           </div>
