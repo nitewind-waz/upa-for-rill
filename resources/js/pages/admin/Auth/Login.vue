@@ -58,7 +58,7 @@ const submit = () => {
                             <InputText 
                                 id="email"
                                 v-model="form.email"
-                                placeholder="admin@polban.ac.id"
+                                placeholder="Email address."
                                 class="w-full !rounded-xl !border-slate-200 
                                     focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-100 transition-all"
                                 :class="{ 'p-invalid': form.errors.email }"
@@ -76,7 +76,7 @@ const submit = () => {
                             <Password 
                                 id="password" 
                                 v-model="form.password" 
-                                placeholder="••••••••" 
+                                placeholder="Password"
                                 :feedback="false"
                                 toggleMask
                                 inputClass="w-full !pl-10 !rounded-xl !border-slate-200 focus:!border-blue-500 focus:!ring-2 focus:!ring-blue-100 transition-all"

@@ -102,9 +102,10 @@ Route::prefix('admin')->name('admin.')->group(function () {
 
         // --- MANAJEMEN HASIL EPT (RESULT) ---
         Route::controller(EptResultController::class)->prefix('ept')->name('ept.')->group(function () {
-            Route::get('/', 'index')->name('index');    // admin.ept.index
-            Route::post('/', 'store')->name('store');   // admin.ept.store
-            Route::post('/import', 'import')->name('import'); // admin.ept.import
+            Route::get('/', 'index')->name('index'); 
+            Route::post('/', 'store')->name('store');  
+            Route::post('/import', 'import')->name('import'); 
+            Route::get('/template', 'downloadTemplate')->name('template');
         });
 
         // --- MANAJEMEN SERTIFIKAT EPT ---

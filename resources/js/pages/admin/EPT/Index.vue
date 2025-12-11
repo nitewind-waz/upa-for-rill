@@ -18,17 +18,14 @@ import IconField from 'primevue/iconfield';
 import InputIcon from 'primevue/inputicon';
 import { useToast } from "primevue/usetoast";
 
-// Inisialisasi Toast
 const toast = useToast();
 
-// Props
 const props = defineProps({
     results: Object,
     mahasiswas: Array,
     filters: Object,
 });
 
-// --- STATE MANAGEMENT (YANG DIPERBAIKI) ---
 const lazyParams = ref({
     first: 0,
     rows: props.results?.per_page || 20,
@@ -57,10 +54,8 @@ const importForm = useForm({
     file: null,
 });
 
-
 const resultsData = computed(() => props.results?.data || []);
 
-// --- LOGIKA UTAMA ---
 const loadLazyData = (event) => {
     if (event) {
         lazyParams.value.first = event.first;
@@ -97,7 +92,6 @@ watch([
     loadLazyData();
 });
 
-// --- LOGIKA FORM ---
 const openCreateDialog = () => { createDialog.value = true; };
 const hideCreateDialog = () => { createDialog.value = false; createForm.reset(); createForm.clearErrors(); };
 
@@ -114,10 +108,6 @@ const submitCreateForm = () => {
             toast.add({ severity: 'error', summary: 'Gagal', detail: 'Periksa kembali inputan Anda.', life: 3000 });
         }
     });
-};
-
-const downloadTemplate = () =>{
-    window.location.href = '/storage/template/template_nilai_ept.xlsx'
 };
 
 const handleFileChange = (event) => {
@@ -150,6 +140,7 @@ const submitImportForm = () => {
 
         <div class="space-y-6">
 
+            <!-- HEADER & ACTIONS -->
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
                 <div>
                     <h1 class="text-2xl font-bold text-slate-900 tracking-tight">
@@ -159,30 +150,39 @@ const submitImportForm = () => {
                         Monitoring skor Listening, Structure, dan Reading.
                     </p>
                 </div>
-                <div class="flex gap-2">
-                    <Button
-                        label="Download Template Excel Nilai EPT"
-                        icon="pi pi-download"
-                        severity="secondary"
-                        @click="downloadTemplate"
-                        outlined
-                    />  
+                
+                <!-- BUTTON GROUP -->
+                <div class="flex flex-wrap gap-2">
+                    <!-- FIX: Gunakan tag 'a' langsung ke route Laravel -->
+                    <a href="/admin/ept/template" target="_blank">
+                        <Button
+                            label="Template Excel"
+                            icon="pi pi-file-excel"
+                            severity="secondary"
+                            outlined
+                            size="small"
+                            class="!border-slate-300 !text-slate-600 hover:!bg-slate-50"
+                        />  
+                    </a>
+
                     <Button 
-                        label="Import Excel" 
-                        icon="pi pi-file-excel" 
-                        severity="success" 
+                        label="Import Data" 
+                        icon="pi pi-upload" 
+                        size="small"
+                        class="!bg-emerald-600 !border-emerald-600 hover:!bg-emerald-700"
                         @click="openImportDialog" 
-                        outlined
                     />
                     <Button 
                         label="Input Manual" 
                         icon="pi pi-plus" 
+                        size="small"
+                        class="!bg-blue-600 !border-blue-600 hover:!bg-blue-700"
                         @click="openCreateDialog" 
-                        severity="primary"
                     />
                 </div>
             </div>
 
+            <!-- TABLE CARD -->
             <div class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
                 
                 <div class="p-4 border-b border-slate-100 bg-slate-50/50 grid grid-cols-1 md:grid-cols-12 gap-4">
@@ -192,7 +192,7 @@ const submitImportForm = () => {
                             <InputText 
                                 v-model="lazyParams.globalFilter" 
                                 placeholder="Cari Nama atau NIM..." 
-                                class="w-full !bg-white" 
+                                class="w-full !bg-white !rounded-lg" 
                             />
                         </IconField>
                     </div>
@@ -201,7 +201,7 @@ const submitImportForm = () => {
                         <InputText 
                             v-model="lazyParams.tahun" 
                             placeholder="Filter Tahun" 
-                            class="w-full !bg-white" 
+                            class="w-full !bg-white !rounded-lg" 
                         />
                     </div>
 
@@ -214,7 +214,7 @@ const submitImportForm = () => {
                             placeholder="Pilih Mahasiswa" 
                             showClear 
                             filter
-                            class="w-full !bg-white"
+                            class="w-full !bg-white !rounded-lg"
                         />
                     </div>
                 </div>
@@ -321,6 +321,7 @@ const submitImportForm = () => {
             </div>
         </div>
 
+        <!-- DIALOG CREATE (Sama seperti sebelumnya) -->
         <Dialog v-model:visible="createDialog" header="Input Data Manual" :style="{ width: '500px' }" modal :draggable="false" class="p-fluid">
             <div class="flex flex-col gap-5 pt-2">
                 <div class="grid grid-cols-2 gap-4">
@@ -378,10 +379,11 @@ const submitImportForm = () => {
 
             <template #footer>
                 <Button label="Batal" text severity="secondary" @click="hideCreateDialog" />
-                <Button label="Simpan Data" @click="submitCreateForm" :loading="createForm.processing" severity="primary" />
+                <Button label="Simpan Data" @click="submitCreateForm" :loading="createForm.processing" class="!bg-blue-600 !border-blue-600" />
             </template>
         </Dialog>
 
+        <!-- DIALOG IMPORT -->
         <Dialog v-model:visible="importDialog" header="Import Data Excel" :style="{ width: '400px' }" modal :draggable="false">
             <div class="flex flex-col items-center justify-center pt-4">
                 <i class="pi pi-file-excel text-green-500 text-4xl mb-4"></i>
@@ -395,7 +397,7 @@ const submitImportForm = () => {
                     accept=".xlsx,.xls,.csv" 
                     :maxFileSize="5000000" 
                     chooseLabel="Pilih File Excel" 
-                    class="w-full"
+                    class="w-full !bg-emerald-600 !border-emerald-600"
                     :auto="true" 
                     customUpload
                     @uploader="handleImportSelect"
@@ -411,7 +413,7 @@ const submitImportForm = () => {
 
             <template #footer>
                 <Button label="Batal" text severity="secondary" @click="hideImportDialog" />
-                <Button label="Mulai Import" @click="submitImportForm" :loading="importForm.processing" :disabled="!importForm.file" severity="success" />
+                <Button label="Mulai Import" @click="submitImportForm" :loading="importForm.processing" :disabled="!importForm.file" class="!bg-emerald-600 !border-emerald-600" />
             </template>
         </Dialog>
 
@@ -419,10 +421,9 @@ const submitImportForm = () => {
 </template>
 
 <style scoped>
-/* Override header table agar warna soft & font tebal */
 :deep(.p-datatable .p-datatable-thead > tr > th) {
-    background-color: #f8fafc !important; /* bg-slate-50 */
-    color: #475569 !important; /* text-slate-600 */
+    background-color: #f8fafc !important;
+    color: #475569 !important;
     font-weight: 700 !important;
     font-size: 0.80rem !important;
     text-transform: uppercase;
@@ -431,20 +432,17 @@ const submitImportForm = () => {
     padding: 1rem;
 }
 
-/* Baris tabel */
 :deep(.p-datatable .p-datatable-tbody > tr > td) {
     padding: 0.75rem 1rem;
-    color: #334155; /* text-slate-700 */
+    color: #334155;
     font-size: 0.875rem;
     border-bottom: 1px solid #f1f5f9;
 }
 
-/* Hover effect baris */
 :deep(.p-datatable.p-datatable-hoverable-rows .p-datatable-tbody > tr:not(.p-highlight):hover) {
     background-color: #f8fafc !important;
 }
 
-/* Paginator rapi */
 :deep(.p-paginator) {
     justify-content: end;
     border-top: 1px solid #e2e8f0;

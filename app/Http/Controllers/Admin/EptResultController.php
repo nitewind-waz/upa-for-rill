@@ -50,7 +50,7 @@ class EptResultController extends Controller
             'results' => $results,
             'mahasiswas' => $mahasiswas, // <--- PASTIKAN INI ADA
             'filters' => $request->only(['sortField', 'sortOrder', 'globalFilter', 'tahun', 'mahasiswa_id']),
-        ]);
+        ],);
     }
 
     public function store(Request $request)
@@ -100,5 +100,16 @@ class EptResultController extends Controller
         } catch (\Exception $e) {
             return redirect()->back()->withErrors(['file' => 'Terjadi kesalahan saat import: ' . $e->getMessage()]);
         }
+    }
+
+    public function downloadTemplate()
+    {
+        $filePath = public_path('templates/template_nilai_ept.xlsx');
+
+        if (!file_exists($filePath)) {
+            return back()->withErrors(['message' => 'File template tidak ditemukan.']);
+        }
+
+        return response()->download($filePath, 'Format_Import_EPT.xlsx');
     }
 }
