@@ -41,77 +41,29 @@ const userTypes = [
 // ======================
 // FILTER STATES
 // ======================
-const selectedUserType = ref(null); // Re-added
-const selectedJurusanId = ref(null);
-const selectedProdiId = ref(null);
-const globalFilter = ref('');
-
-// Reset Prodi & Jurusan ketika User Type berubah
-watch(selectedUserType, () => {
-    selectedJurusanId.value = null;
-    selectedProdiId.value = null;
-});
-
-// Reset Prodi ketika Jurusan berubah
-watch(selectedJurusanId, () => {
-    selectedProdiId.value = null;
-});
-
-
-// ======================
-// DROPDOWN PRODI TERGANTUNG JURUSAN
-// ======================
-const prodiOptions = computed(() => {
-    if (!selectedJurusanId.value) return [];
-    return props.prodi.filter(p => p.jurusan_id === selectedJurusanId.value);
-});
+const selectedUserType = ref(null);
 
 // ======================
 // FILTER UTAMA
 // ======================
 const filteredJadwal = computed(() => {
+  console.log('--- filteredJadwal Computed ---');
+  console.log('selectedUserType:', selectedUserType.value);
+
   let baseData = [];
   if (selectedUserType.value === 'mahasiswa') {
     baseData = Array.isArray(props.jadwalMahasiswa) ? props.jadwalMahasiswa : [];
   } else if (selectedUserType.value === 'publik') {
     baseData = Array.isArray(props.jadwalPublik) ? props.jadwalPublik : [];
   } else {
+    console.log('No user type selected, returning empty array.');
     return []; // No user type selected, no data to show
   }
+  console.log('baseData (after userType selection):', baseData.length, 'items');
 
   let data = baseData;
   
-  // Apply Jurusan/Prodi filter only for Mahasiswa type
-  if (selectedUserType.value === 'mahasiswa') {
-      if (selectedProdiId.value) {
-        data = data.filter(j => j.prodi_id === selectedProdiId.value);
-      } else if (selectedJurusanId.value) {
-        const prodiInJurusan = prodiOptions.value.map(p => p.id);
-        data = data.filter(j => prodiInJurusan.includes(j.prodi_id));
-      }
-  }
-
-  if (globalFilter.value) {
-    const query = globalFilter.value.toLowerCase();
-    
-    return data.filter(item => {
-      const jurusanName = item.jurusan?.nama_jurusan?.toLowerCase() || '';
-      const prodiName = item.prodi?.nama_prodi?.toLowerCase() || '';
-      const kelasName = item.kelas?.nama_kelas?.toLowerCase() || '';
-      const ruangName = item.ruang?.nama?.toLowerCase() || '';
-      const gedungName = item.gedung?.nama?.toLowerCase() || '';
-
-      return (
-        jurusanName.includes(query) ||
-        prodiName.includes(query) ||
-        kelasName.includes(query) ||
-        ruangName.includes(query) ||
-        gedungName.includes(query) ||
-        item.tanggal.toLowerCase().includes(query)
-      );
-    });
-  }
-
+  console.log('Returning data (no globalFilter):', data.length, 'items');
   return data;
 });
 
@@ -119,29 +71,12 @@ const filteredJadwal = computed(() => {
 // RESET FILTER
 // ======================
 const resetFilter = () => {
-    selectedUserType.value = null;
-    selectedJurusanId.value = null;
-    selectedProdiId.value = null;
-    globalFilter.value = "";
+    // selectedUserType.value = null; // Keep the selected user type
 };
 
 // ======================
 // STATUS (Dibuka / Selesai)
 // ======================
-const getStatusSeverity = (tanggal, waktuSelesai) => {
-    if (!tanggal || !waktuSelesai) {
-        return { label: "Tidak Valid", severity: "danger" };
-    }
-
-    const scheduleDateTime = new Date(`${tanggal}T${waktuSelesai}`);
-    const now = new Date();
-
-    if (scheduleDateTime < now) {
-        return { label: 'Selesai', severity: 'secondary' };
-    }
-
-    return { label: 'Dibuka', severity: 'success' };
-};
 </script>
 
 <template>
@@ -180,7 +115,7 @@ const getStatusSeverity = (tanggal, waktuSelesai) => {
                              <p class="text-sm text-slate-500 mt-1">Pilih kategori peserta untuk melihat jadwal yang sesuai.</p>
                         </div>
                         <Button 
-                            v-if="selectedUserType || selectedJurusanId || selectedProdiId || globalFilter" 
+                            v-if="selectedUserType || selectedJurusanId || selectedProdiId" 
                             label="Reset Filter" 
                             icon="pi pi-refresh" 
                             severity="secondary" 
@@ -263,11 +198,6 @@ const getStatusSeverity = (tanggal, waktuSelesai) => {
                                     <p class="text-xs text-slate-500">{{ filteredJadwal.length }} sesi ditemukan</p>
                                 </div>
                              </div>
-
-                             <IconField iconPosition="left">
-                                <InputIcon class="pi pi-search text-slate-400" />
-                                <InputText v-model="globalFilter" placeholder="Cari data..." size="small" class="!pl-10 w-full md:w-64 !bg-white" />
-                            </IconField>
                         </div>
 
                         <DataTable 
@@ -279,13 +209,19 @@ const getStatusSeverity = (tanggal, waktuSelesai) => {
                             class="p-datatable-sm custom-table"
                             columnResizeMode="fit"
                         >
-                            <Column header="Program" sortable field="prodi.nama_prodi" style="min-width: 200px">
+                            <Column :header="selectedUserType === 'publik' ? 'Nama & NIK' : 'Program'" sortable style="min-width: 200px">
                                 <template #body="{ data }">
-                                    <div class="font-bold text-slate-700">{{ data.prodi?.nama_prodi }}</div>
-                                    <div class="text-xs text-slate-500 mt-1">{{ data.jurusan?.nama_jurusan }}</div>
+                                    <div v-if="selectedUserType === 'mahasiswa'">
+                                        <div class="font-bold text-slate-700">{{ data.prodi?.nama_prodi }}</div>
+                                        <div class="text-xs text-slate-500 mt-1">{{ data.jurusan?.nama_jurusan }}</div>
+                                    </div>
+                                    <div v-else-if="selectedUserType === 'publik'">
+                                        <div class="font-bold text-slate-700">{{ data.publik?.nama_lengkap }}</div>
+                                        <div class="text-xs text-slate-500 mt-1">{{ data.publik?.nik }}</div>
+                                    </div>
                                 </template>
                             </Column>
-                            <Column header="Kelas" sortable field="kelas.nama_kelas" style="min-width: 100px">
+                            <Column header="Kelas" sortable style="min-width: 100px" v-if="selectedUserType === 'mahasiswa'">
                                 <template #body="{ data }">
                                     <Tag :value="data.kelas?.nama_kelas" severity="secondary" class="font-mono !text-slate-600 bg-slate-100 border border-slate-200" rounded v-if="data.kelas_id" />
                                     <Tag value="UMUM" severity="info" class="font-mono !text-slate-600 bg-slate-100 border border-slate-200" rounded v-else />
@@ -300,7 +236,8 @@ const getStatusSeverity = (tanggal, waktuSelesai) => {
                                         </div>
                                         <div class="flex items-center gap-2 text-xs text-slate-500">
                                             <i class="pi pi-clock"></i>
-                                            <span>{{ data.waktu_mulai?.substring(0,5) }} - {{ data.waktu_selesai?.substring(0,5) }} WIB</span>
+                                            <span v-if="selectedUserType === 'mahasiswa'">{{ data.waktu_mulai?.substring(0,5) }} - {{ data.waktu_selesai?.substring(0,5) }} WIB</span>
+                                            <span v-else-if="selectedUserType === 'publik'">{{ data.jam_mulai?.substring(0,5) }} - {{ data.jam_selesai?.substring(0,5) }} WIB</span>
                                         </div>
                                     </div>
                                 </template>
@@ -313,15 +250,6 @@ const getStatusSeverity = (tanggal, waktuSelesai) => {
                                             <i class="pi pi-map-marker text-[10px]"></i> {{ data.gedung?.nama }}
                                         </span>
                                     </div>
-                                </template>
-                            </Column>
-                             <Column field="status" header="Status" sortable style="min-width: 120px">
-                                <template #body="{ data }">
-                                    <Tag 
-                                        :value="getStatusSeverity(data.tanggal, data.waktu_selesai).label" 
-                                        :severity="getStatusSeverity(data.tanggal, data.waktu_selesai).severity" 
-                                        class="!text-xs !font-bold shadow-sm"
-                                    />
                                 </template>
                             </Column>
                         </DataTable>
@@ -341,7 +269,7 @@ const getStatusSeverity = (tanggal, waktuSelesai) => {
                         </div>
                         <h3 class="text-lg font-bold text-slate-800">Jadwal Tidak Ditemukan</h3>
                         <p class="text-slate-500 max-w-md mx-auto mt-2">Maaf, belum ada jadwal EPT yang tersedia untuk kriteria pencarian Anda saat ini.</p>
-                        <Button v-if="selectedUserType || selectedJurusanId || selectedProdiId || globalFilter" label="Reset Pencarian" text class="mt-4" @click="resetFilter" />
+                        <Button v-if="selectedUserType || selectedJurusanId || selectedProdiId" label="Reset Pencarian" text class="mt-4" @click="resetFilter" />
                     </div>
 
                 </transition>
